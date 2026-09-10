@@ -8,6 +8,7 @@ from typing import Literal
 
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 import streamlit as st
 from groq import (
     Groq,
@@ -74,7 +75,7 @@ Topic = Literal[
 
 
 # =========================================================
-# MASTER THEME — Million Dollar UI
+# MASTER THEME — Futuristic Live Dashboard
 # =========================================================
 
 st.markdown(
@@ -83,27 +84,30 @@ st.markdown(
         /* ============================================================
            FONTS
            ============================================================ */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
-        /* ============================================================
-           DESIGN TOKENS
-           ============================================================ */
         :root {
-            --bg-0: #04050a;
-            --line-1: rgba(255, 255, 255, 0.08);
-            --line-2: rgba(255, 255, 255, 0.14);
-            --txt-0: #f5f7fb;
-            --txt-1: #b8c0d4;
-            --txt-2: #7a8398;
-            --txt-3: #4d5567;
+            --bg-0: #030407;
+            --bg-1: #06080f;
+            --line-1: rgba(255, 255, 255, 0.07);
+            --line-2: rgba(255, 255, 255, 0.13);
+            --txt-0: #f6f8fc;
+            --txt-1: #b3bcd0;
+            --txt-2: #6f788d;
+            --txt-3: #475063;
             --accent-1: #6366f1;
             --accent-2: #8b5cf6;
             --accent-3: #22d3ee;
+            --accent-4: #f472b6;
+            --success: #10b981;
+            --warn: #f59e0b;
+            --danger: #f43f5e;
             --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+            --mono: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
         }
 
         /* ============================================================
-           SHELL
+           SHELL — backgrounds applied DIRECTLY to .stApp (no stacking issues)
            ============================================================ */
 
         header[data-testid="stHeader"] { display: none !important; }
@@ -122,20 +126,27 @@ st.markdown(
         .stApp {
             background-color: var(--bg-0);
             background-image:
-                radial-gradient(1200px 600px at 15% -5%,
-                    rgba(99, 102, 241, 0.16), transparent 60%),
-                radial-gradient(1000px 500px at 85% 0%,
-                    rgba(139, 92, 246, 0.12), transparent 55%),
-                radial-gradient(900px 500px at 50% 105%,
-                    rgba(34, 211, 238, 0.10), transparent 60%),
-                linear-gradient(180deg, #04050a 0%, #06080f 45%, #04050a 100%);
+                /* fine grid */
+                linear-gradient(rgba(148, 163, 184, 0.028) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(148, 163, 184, 0.028) 1px, transparent 1px),
+                /* aurora glow */
+                radial-gradient(1200px 600px at 15% -8%, rgba(99, 102, 241, 0.18), transparent 60%),
+                radial-gradient(1000px 500px at 85% -5%, rgba(139, 92, 246, 0.14), transparent 55%),
+                radial-gradient(900px 500px at 50% 108%, rgba(34, 211, 238, 0.10), transparent 60%),
+                radial-gradient(600px 400px at 100% 60%, rgba(244, 114, 182, 0.05), transparent 60%),
+                /* base */
+                linear-gradient(180deg, #030407 0%, #06080f 45%, #030407 100%);
+            background-size:
+                64px 64px,
+                64px 64px,
+                auto, auto, auto, auto, auto;
             background-attachment: fixed;
             color: var(--txt-1);
         }
 
         .block-container {
-            max-width: 1520px;
-            padding: 2.5rem 2.5rem 5rem 2.5rem !important;
+            max-width: 1560px;
+            padding: 1.5rem 2.5rem 5rem 2.5rem !important;
             position: relative;
             z-index: 1;
         }
@@ -151,7 +162,6 @@ st.markdown(
             font-weight: 600;
             line-height: 1.15;
         }
-
         h2 { font-size: 22px !important; }
         h3 { font-size: 17px !important; }
         h4 { font-size: 15px !important; }
@@ -162,82 +172,174 @@ st.markdown(
         a:hover { color: #c7d2fe; }
         strong { color: var(--txt-0); font-weight: 600; }
 
+        /* Section heading with glowing left rule + scan accent */
         h3 {
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin: 2rem 0 1rem !important;
+            gap: 12px;
+            margin: 2.2rem 0 1.1rem !important;
             padding: 0 !important;
+            font-family: var(--mono) !important;
+            font-size: 12.5px !important;
+            font-weight: 600 !important;
+            letter-spacing: 2px !important;
+            text-transform: uppercase !important;
+            color: var(--txt-1) !important;
         }
         h3::before {
             content: "";
             width: 3px;
-            height: 18px;
+            height: 16px;
             border-radius: 2px;
             background: linear-gradient(180deg, var(--accent-1), var(--accent-3));
-            box-shadow: 0 0 12px rgba(99, 102, 241, 0.6);
+            box-shadow: 0 0 12px rgba(99, 102, 241, 0.7), 0 0 24px rgba(34, 211, 238, 0.4);
             flex-shrink: 0;
+            animation: sd-glow-pulse 3s ease-in-out infinite;
+        }
+        @keyframes sd-glow-pulse {
+            0%, 100% { opacity: 1; }
+            50%      { opacity: 0.5; }
         }
 
         /* ============================================================
-           HERO
+           LIVE STATUS BAR — signature futuristic element
+           ============================================================ */
+
+        .sd-live-bar {
+            display: flex;
+            align-items: center;
+            gap: 28px;
+            padding: 11px 20px;
+            border-radius: 14px;
+            background:
+                linear-gradient(180deg,
+                    rgba(14, 18, 32, 0.72) 0%,
+                    rgba(8, 11, 20, 0.65) 100%);
+            border: 1px solid var(--line-1);
+            backdrop-filter: blur(20px) saturate(150%);
+            -webkit-backdrop-filter: blur(20px) saturate(150%);
+            box-shadow:
+                0 8px 24px -12px rgba(0, 0, 0, 0.7),
+                inset 0 1px 0 rgba(255, 255, 255, 0.045);
+            margin-bottom: 20px;
+            font-family: var(--mono);
+            font-size: 10.5px;
+            letter-spacing: 1.2px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* scan line across the status bar */
+        .sd-live-bar::after {
+            content: "";
+            position: absolute;
+            top: 0; bottom: 0;
+            width: 80px;
+            background: linear-gradient(90deg,
+                transparent,
+                rgba(129, 140, 248, 0.20),
+                transparent);
+            animation: sd-live-scan 5s linear infinite;
+            pointer-events: none;
+        }
+        @keyframes sd-live-scan {
+            0%   { left: -80px; }
+            100% { left: 100%; }
+        }
+
+        .sd-live-item { display: flex; align-items: center; gap: 8px; }
+        .sd-live-key {
+            color: var(--txt-3);
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+        .sd-live-val {
+            color: var(--txt-0);
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .sd-live-dot {
+            width: 6px; height: 6px; border-radius: 50%;
+            box-shadow: 0 0 10px currentColor;
+            animation: sd-live-pulse 1.6s ease-in-out infinite;
+        }
+        @keyframes sd-live-pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50%      { opacity: 0.35; transform: scale(0.7); }
+        }
+        .sd-live-spacer { margin-left: auto; }
+
+        /* ============================================================
+           HERO — Cinematic with rotating conic border
            ============================================================ */
 
         .sd-hero {
             position: relative;
             overflow: hidden;
             border-radius: 28px;
-            padding: 52px 56px;
-            margin-bottom: 28px;
+            padding: 54px 56px;
+            margin-bottom: 26px;
             background:
                 linear-gradient(180deg,
-                    rgba(24, 28, 48, 0.9) 0%,
-                    rgba(12, 15, 28, 0.92) 100%);
-            border: 1px solid var(--line-1);
+                    rgba(20, 24, 42, 0.92) 0%,
+                    rgba(9, 12, 22, 0.94) 100%);
             box-shadow:
-                0 40px 100px -30px rgba(0, 0, 0, 0.85),
+                0 40px 100px -30px rgba(0, 0, 0, 0.9),
                 inset 0 1px 0 rgba(255, 255, 255, 0.06);
         }
 
+        /* rotating conic border */
         .sd-hero::before {
             content: "";
             position: absolute;
-            inset: -40%;
-            z-index: 0;
+            inset: -2px;
+            z-index: -1;
+            border-radius: 30px;
             background:
-                conic-gradient(from 220deg at 30% 40%,
-                    rgba(99, 102, 241, 0.35),
-                    rgba(139, 92, 246, 0.25),
-                    rgba(34, 211, 238, 0.22),
-                    rgba(244, 114, 182, 0.18),
-                    rgba(99, 102, 241, 0.35));
-            filter: blur(90px);
-            opacity: 0.7;
-            animation: sd-aurora 20s ease-in-out infinite;
+                conic-gradient(from var(--angle, 0deg),
+                    rgba(99, 102, 241, 0.9),
+                    rgba(139, 92, 246, 0.6),
+                    rgba(34, 211, 238, 0.8),
+                    rgba(244, 114, 182, 0.5),
+                    rgba(99, 102, 241, 0.9));
+            animation: sd-border-rotate 12s linear infinite;
+            filter: blur(2px);
+            opacity: 0.75;
         }
 
-        @keyframes sd-aurora {
-            0%, 100% { transform: rotate(0deg) scale(1); }
-            50%      { transform: rotate(30deg) scale(1.1); }
+        @property --angle {
+            syntax: '<angle>';
+            initial-value: 0deg;
+            inherits: false;
+        }
+        @keyframes sd-border-rotate {
+            to { --angle: 360deg; }
         }
 
+        /* inner shell to mask */
+        .sd-hero-inner-shell {
+            position: absolute;
+            inset: 1px;
+            border-radius: 27px;
+            background:
+                linear-gradient(180deg,
+                    rgba(20, 24, 42, 0.98) 0%,
+                    rgba(9, 12, 22, 0.99) 100%);
+            z-index: 0;
+        }
+
+        /* aurora inside */
         .sd-hero::after {
             content: "";
             position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 1px;
-            z-index: 3;
-            background: linear-gradient(90deg,
-                transparent 0%,
-                rgba(165, 180, 252, 0.9) 50%,
-                rgba(34, 211, 238, 0.7) 90%,
-                transparent 100%);
-            animation: sd-scan 8s ease-in-out infinite;
-        }
-
-        @keyframes sd-scan {
-            0%, 100% { opacity: 0.4; }
-            50%      { opacity: 1; }
+            inset: 0;
+            border-radius: 28px;
+            background:
+                radial-gradient(circle at 88% 8%, rgba(99, 102, 241, 0.32), transparent 45%),
+                radial-gradient(circle at 12% 95%, rgba(34, 211, 238, 0.18), transparent 45%),
+                radial-gradient(circle at 50% 120%, rgba(139, 92, 246, 0.15), transparent 55%);
+            pointer-events: none;
+            z-index: 1;
         }
 
         .sd-hero-inner {
@@ -252,16 +354,17 @@ st.markdown(
         .sd-eyebrow {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            padding: 6px 12px 6px 10px;
+            gap: 9px;
+            padding: 6px 14px 6px 12px;
             border-radius: 999px;
             background: rgba(99, 102, 241, 0.10);
-            border: 1px solid rgba(129, 140, 248, 0.22);
+            border: 1px solid rgba(129, 140, 248, 0.24);
             color: #c7d2fe;
-            font-size: 10.5px;
+            font-family: var(--mono);
+            font-size: 10px;
             font-weight: 600;
-            letter-spacing: 2.2px;
-            margin-bottom: 20px;
+            letter-spacing: 2.4px;
+            margin-bottom: 22px;
             width: fit-content;
         }
 
@@ -270,19 +373,14 @@ st.markdown(
             border-radius: 50%;
             background: #22d3ee;
             box-shadow: 0 0 10px #22d3ee, 0 0 20px rgba(34, 211, 238, 0.6);
-            animation: sd-pulse 2s ease-in-out infinite;
-        }
-
-        @keyframes sd-pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50%      { opacity: 0.4; transform: scale(0.75); }
+            animation: sd-live-pulse 1.8s ease-in-out infinite;
         }
 
         .sd-hero h1 {
             color: var(--txt-0);
             font-size: clamp(34px, 4.6vw, 54px);
             font-weight: 700;
-            letter-spacing: -0.04em;
+            letter-spacing: -0.045em;
             line-height: 1.02;
             margin: 0 0 18px 0;
             padding: 0;
@@ -296,7 +394,6 @@ st.markdown(
             -webkit-text-fill-color: transparent;
             animation: sd-shimmer 8s ease infinite;
         }
-
         @keyframes sd-shimmer {
             0%, 100% { background-position: 0% 50%; }
             50%      { background-position: 100% 50%; }
@@ -310,11 +407,7 @@ st.markdown(
             margin: 0 0 26px 0;
         }
 
-        .sd-pills {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
+        .sd-pills { display: flex; flex-wrap: wrap; gap: 8px; }
 
         .sd-pill {
             display: inline-flex;
@@ -325,12 +418,12 @@ st.markdown(
             background: rgba(255, 255, 255, 0.04);
             border: 1px solid var(--line-1);
             color: #cdd5e8;
-            font-size: 10.5px;
+            font-family: var(--mono);
+            font-size: 10px;
             font-weight: 600;
-            letter-spacing: 1.3px;
+            letter-spacing: 1.4px;
             transition: all 0.3s var(--ease-out);
         }
-
         .sd-pill:hover {
             background: rgba(99, 102, 241, 0.14);
             border-color: rgba(129, 140, 248, 0.42);
@@ -339,41 +432,44 @@ st.markdown(
             box-shadow: 0 10px 24px -12px rgba(99, 102, 241, 0.9);
         }
 
+        /* Right-side telemetry cluster */
         .sd-hero-stats {
             display: grid;
             grid-template-columns: 1fr;
             gap: 10px;
-            min-width: 220px;
+            min-width: 240px;
         }
 
         .sd-stat {
             padding: 14px 18px;
             border-radius: 14px;
-            background: rgba(10, 14, 26, 0.55);
+            background: rgba(10, 14, 26, 0.65);
             border: 1px solid var(--line-1);
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 12px;
             transition: border-color 0.25s var(--ease-out);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
         }
-
         .sd-stat:hover { border-color: rgba(129, 140, 248, 0.32); }
 
         .sd-stat-label {
-            font-size: 10px;
-            font-weight: 600;
-            letter-spacing: 1.4px;
-            color: var(--txt-2);
+            font-family: var(--mono);
+            font-size: 9.5px;
+            font-weight: 500;
+            letter-spacing: 1.6px;
+            color: var(--txt-3);
             text-transform: uppercase;
         }
 
         .sd-stat-value {
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 15px;
+            font-family: var(--mono);
+            font-size: 12px;
             font-weight: 600;
             color: var(--txt-0);
-            letter-spacing: -0.02em;
+            letter-spacing: 0.5px;
             display: flex;
             align-items: center;
             gap: 8px;
@@ -383,6 +479,7 @@ st.markdown(
             width: 6px; height: 6px;
             border-radius: 50%;
             box-shadow: 0 0 10px currentColor;
+            animation: sd-live-pulse 1.6s ease-in-out infinite;
         }
 
         /* ============================================================
@@ -409,9 +506,10 @@ st.markdown(
 
         [data-testid="stSidebar"] h5 {
             color: var(--txt-2) !important;
-            font-size: 10.5px !important;
-            font-weight: 700 !important;
-            letter-spacing: 1.8px !important;
+            font-family: var(--mono) !important;
+            font-size: 10px !important;
+            font-weight: 600 !important;
+            letter-spacing: 2px !important;
             text-transform: uppercase;
         }
 
@@ -424,7 +522,10 @@ st.markdown(
 
         [data-testid="stSidebar"] [data-testid="stCaptionContainer"] p {
             color: var(--txt-2);
-            font-size: 11.5px;
+            font-family: var(--mono);
+            font-size: 10.5px;
+            letter-spacing: 0.3px;
+            line-height: 1.7;
         }
 
         /* ============================================================
@@ -445,22 +546,20 @@ st.markdown(
             overflow: hidden;
             transition: border-color 0.35s var(--ease-out);
         }
-
         [data-testid="stExpander"]:hover {
             border-color: rgba(129, 140, 248, 0.22) !important;
         }
-
         [data-testid="stExpander"] details { border: none !important; }
-
         [data-testid="stExpander"] summary {
-            font-family: 'Space Grotesk', sans-serif !important;
-            font-size: 13.5px !important;
+            font-family: var(--mono) !important;
+            font-size: 12px !important;
             font-weight: 600 !important;
+            letter-spacing: 1.2px !important;
+            text-transform: uppercase;
             color: #cdd5e8 !important;
             padding: 18px 22px !important;
             transition: all 0.25s var(--ease-out);
         }
-
         [data-testid="stExpander"] summary:hover {
             color: var(--txt-0) !important;
             background: rgba(99, 102, 241, 0.05);
@@ -482,67 +581,87 @@ st.markdown(
                 inset 0 1px 0 rgba(255, 255, 255, 0.045);
             transition: border-color 0.3s var(--ease-out);
         }
-
         [data-testid="stVerticalBlockBorderWrapper"]:hover {
             border-color: rgba(129, 140, 248, 0.24);
         }
 
         /* ============================================================
-           METRICS
+           METRICS — KPI Tiles with animated top light
            ============================================================ */
 
         [data-testid="stMetric"] {
             position: relative;
-            padding: 20px 22px 18px 22px;
-            border-radius: 16px;
+            padding: 22px 24px 20px 24px;
+            border-radius: 18px;
             background:
                 linear-gradient(160deg,
-                    rgba(22, 27, 46, 0.85) 0%,
-                    rgba(11, 14, 26, 0.72) 100%);
+                    rgba(22, 27, 46, 0.88) 0%,
+                    rgba(11, 14, 26, 0.75) 100%);
             border: 1px solid var(--line-1);
             overflow: hidden;
             box-shadow:
-                0 8px 24px -8px rgba(0, 0, 0, 0.55),
-                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+                0 8px 24px -8px rgba(0, 0, 0, 0.6),
+                inset 0 1px 0 rgba(255, 255, 255, 0.055);
             transition: transform 0.35s var(--ease-out),
                         border-color 0.35s var(--ease-out);
         }
-
         [data-testid="stMetric"]:hover {
             transform: translateY(-3px);
-            border-color: rgba(129, 140, 248, 0.35);
+            border-color: rgba(129, 140, 248, 0.38);
         }
 
+        /* animated top border sweep */
         [data-testid="stMetric"]::before {
             content: "";
             position: absolute;
             top: 0; left: 0; right: 0;
             height: 1px;
             background: linear-gradient(90deg,
-                transparent 5%,
-                rgba(165, 180, 252, 0.9) 30%,
-                rgba(34, 211, 238, 0.75) 70%,
-                transparent 95%);
+                transparent 0%,
+                rgba(165, 180, 252, 0.95) 40%,
+                rgba(34, 211, 238, 0.85) 60%,
+                transparent 100%);
+            background-size: 200% 100%;
+            animation: sd-sweep 4s linear infinite;
+            opacity: 0.9;
+        }
+        @keyframes sd-sweep {
+            0%   { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        /* corner glow */
+        [data-testid="stMetric"]::after {
+            content: "";
+            position: absolute;
+            top: -50px; right: -50px;
+            width: 140px; height: 140px;
+            border-radius: 50%;
+            background: radial-gradient(circle,
+                rgba(99, 102, 241, 0.30), transparent 65%);
+            pointer-events: none;
         }
 
         [data-testid="stMetricLabel"] {
             color: var(--txt-2) !important;
-            font-size: 10.5px !important;
-            font-weight: 700 !important;
-            letter-spacing: 1.6px !important;
+            font-family: var(--mono) !important;
+            font-size: 10px !important;
+            font-weight: 600 !important;
+            letter-spacing: 1.8px !important;
             text-transform: uppercase;
         }
 
         [data-testid="stMetricValue"] {
             color: var(--txt-0) !important;
-            font-family: 'Space Grotesk', sans-serif !important;
+            font-family: var(--mono) !important;
             font-weight: 600 !important;
-            font-size: 32px !important;
-            letter-spacing: -0.035em !important;
+            font-size: 30px !important;
+            letter-spacing: -0.04em !important;
+            text-shadow: 0 0 30px rgba(129, 140, 248, 0.25);
         }
 
         /* ============================================================
-           TABS
+           TABS — Segmented control
            ============================================================ */
 
         .stTabs [data-baseweb="tab-list"] {
@@ -555,7 +674,6 @@ st.markdown(
             box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.55);
             margin-bottom: 6px;
         }
-
         .stTabs [data-baseweb="tab"] {
             height: auto;
             padding: 9px 18px;
@@ -568,16 +686,14 @@ st.markdown(
             border: 1px solid transparent;
             transition: all 0.25s var(--ease-out);
         }
-
         .stTabs [data-baseweb="tab"]:hover {
             color: var(--txt-0);
             background: rgba(99, 102, 241, 0.06);
         }
-
         .stTabs [aria-selected="true"] {
             background:
                 linear-gradient(180deg,
-                    rgba(99, 102, 241, 0.30) 0%,
+                    rgba(99, 102, 241, 0.32) 0%,
                     rgba(99, 102, 241, 0.14) 100%) !important;
             color: #f5f7fb !important;
             border: 1px solid rgba(129, 140, 248, 0.42) !important;
@@ -585,7 +701,6 @@ st.markdown(
                 0 10px 24px -10px rgba(99, 102, 241, 0.85),
                 inset 0 1px 0 rgba(255, 255, 255, 0.10);
         }
-
         .stTabs [data-baseweb="tab-highlight"],
         .stTabs [data-baseweb="tab-border"] {
             display: none !important;
@@ -605,13 +720,12 @@ st.markdown(
             padding: 10px 18px;
             transition: all 0.25s var(--ease-out);
             border: 1px solid var(--line-1);
-            background: rgba(20, 25, 42, 0.68);
+            background: rgba(20, 25, 42, 0.72);
             color: var(--txt-0);
             box-shadow:
                 0 1px 2px rgba(0, 0, 0, 0.4),
                 inset 0 1px 0 rgba(255, 255, 255, 0.05);
         }
-
         .stButton > button:hover,
         .stDownloadButton > button:hover {
             border-color: rgba(129, 140, 248, 0.45);
@@ -628,25 +742,23 @@ st.markdown(
                 linear-gradient(120deg,
                     #6366f1 0%,
                     #8b5cf6 50%,
-                    #6366f1 100%);
+                    #22d3ee 100%);
             background-size: 220% 220%;
-            border: 1px solid rgba(165, 180, 252, 0.42);
+            border: 1px solid rgba(165, 180, 252, 0.5);
             color: #ffffff !important;
             box-shadow:
-                0 16px 40px -14px rgba(99, 102, 241, 0.9),
-                inset 0 1px 0 rgba(255, 255, 255, 0.30);
+                0 16px 40px -14px rgba(99, 102, 241, 0.95),
+                inset 0 1px 0 rgba(255, 255, 255, 0.35);
             animation: sd-gradient-shift 8s ease infinite;
         }
-
         .stButton > button[kind="primary"]:hover,
         button[kind="primary"]:hover {
             background-position: 100% 50%;
             transform: translateY(-2px);
             box-shadow:
                 0 22px 50px -16px rgba(139, 92, 246, 1),
-                0 0 0 1px rgba(165, 180, 252, 0.4);
+                0 0 0 1px rgba(165, 180, 252, 0.5);
         }
-
         @keyframes sd-gradient-shift {
             0%, 100% { background-position: 0% 50%; }
             50%      { background-position: 100% 50%; }
@@ -675,7 +787,6 @@ st.markdown(
             padding: 10px 14px !important;
             transition: all 0.25s var(--ease-out);
         }
-
         .stTextInput input:focus,
         .stTextArea textarea:focus,
         .stNumberInput input:focus {
@@ -693,11 +804,9 @@ st.markdown(
             min-height: 42px !important;
             transition: all 0.25s var(--ease-out);
         }
-
         div[data-baseweb="select"] > div:hover {
             border-color: rgba(129, 140, 248, 0.4) !important;
         }
-
         div[data-baseweb="popover"] {
             background: rgba(14, 18, 32, 0.96) !important;
             border: 1px solid var(--line-2) !important;
@@ -726,9 +835,10 @@ st.markdown(
         .stCheckbox label,
         .stDateInput label {
             color: var(--txt-2) !important;
-            font-size: 11px !important;
+            font-family: var(--mono) !important;
+            font-size: 10px !important;
             font-weight: 600 !important;
-            letter-spacing: 1.2px;
+            letter-spacing: 1.6px;
             text-transform: uppercase;
         }
 
@@ -741,7 +851,6 @@ st.markdown(
             background: rgba(10, 13, 22, 0.72) !important;
             border: 1px solid var(--line-1) !important;
         }
-
         [data-testid="stRadio"] label {
             background: transparent !important;
             padding: 8px 16px !important;
@@ -754,13 +863,85 @@ st.markdown(
             font-size: 13px !important;
             color: var(--txt-2) !important;
         }
-
         [data-testid="stRadio"] label:hover {
             color: var(--txt-0) !important;
             background: rgba(99, 102, 241, 0.06) !important;
         }
-
         [data-testid="stRadio"] label > div:first-child { display: none !important; }
+
+        /* ============================================================
+           PROGRESS — fixed layout + shimmer
+           ============================================================ */
+
+        [data-testid="stProgress"] {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin: 10px 0 4px 0;
+        }
+
+        /* Label — sits cleanly ABOVE the bar */
+        [data-testid="stProgress"] > div:first-child {
+            order: 1;
+            font-family: var(--mono) !important;
+            font-size: 11px !important;
+            color: var(--txt-2) !important;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        /* Track — sits BELOW the label */
+        [data-testid="stProgress"] > div:last-child {
+            order: 2;
+            height: 6px !important;
+            background: rgba(255, 255, 255, 0.06) !important;
+            border-radius: 999px !important;
+            overflow: hidden;
+            margin: 0 !important;
+        }
+
+        /* Fill */
+        [data-testid="stProgress"] > div:last-child > div > div {
+            background: linear-gradient(90deg, #6366f1, #8b5cf6, #22d3ee) !important;
+            border-radius: 999px !important;
+            box-shadow: 0 0 14px rgba(99, 102, 241, 0.75);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Shimmer on fill */
+        [data-testid="stProgress"] > div:last-child > div > div::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg,
+                transparent,
+                rgba(255, 255, 255, 0.5),
+                transparent);
+            animation: sd-progress-shimmer 1.6s linear infinite;
+        }
+        @keyframes sd-progress-shimmer {
+            0%   { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* ============================================================
+           FILE UPLOADER
+           ============================================================ */
+
+        [data-testid="stFileUploaderDropzone"] {
+            background: rgba(9, 12, 22, 0.55) !important;
+            border: 1.5px dashed rgba(129, 140, 248, 0.28) !important;
+            border-radius: 16px !important;
+            padding: 28px 20px !important;
+            transition: all 0.3s var(--ease-out);
+        }
+        [data-testid="stFileUploaderDropzone"]:hover {
+            border-color: rgba(129, 140, 248, 0.65) !important;
+            background: rgba(99, 102, 241, 0.06) !important;
+        }
 
         /* ============================================================
            DATAFRAMES
@@ -783,43 +964,9 @@ st.markdown(
             background: rgba(14, 18, 32, 0.68) !important;
             padding: 12px 16px !important;
         }
-
         [data-testid="stAlert"] [data-testid="stMarkdownContainer"] p {
             color: var(--txt-1) !important;
             font-size: 13px !important;
-        }
-
-        /* ============================================================
-           PROGRESS
-           ============================================================ */
-
-        [data-testid="stProgress"] > div {
-            background: rgba(255, 255, 255, 0.06) !important;
-            border-radius: 999px !important;
-            height: 4px !important;
-            overflow: hidden;
-        }
-
-        [data-testid="stProgress"] > div > div > div {
-            background: linear-gradient(90deg, #6366f1, #8b5cf6, #22d3ee) !important;
-            border-radius: 999px !important;
-        }
-
-        /* ============================================================
-           FILE UPLOADER
-           ============================================================ */
-
-        [data-testid="stFileUploaderDropzone"] {
-            background: rgba(9, 12, 22, 0.55) !important;
-            border: 1.5px dashed rgba(129, 140, 248, 0.28) !important;
-            border-radius: 16px !important;
-            padding: 28px 20px !important;
-            transition: all 0.3s var(--ease-out);
-        }
-
-        [data-testid="stFileUploaderDropzone"]:hover {
-            border-color: rgba(129, 140, 248, 0.65) !important;
-            background: rgba(99, 102, 241, 0.06) !important;
         }
 
         /* ============================================================
@@ -841,7 +988,6 @@ st.markdown(
             white-space: pre-wrap;
             overflow-wrap: anywhere;
         }
-
         .sd-comment::before {
             content: "";
             position: absolute;
@@ -904,8 +1050,9 @@ st.markdown(
             .sd-hero-inner { grid-template-columns: 1fr; gap: 24px; }
             .sd-hero-stats { min-width: 0; }
             .sd-hero h1 { font-size: 30px; letter-spacing: -0.03em; }
-            .block-container { padding: 1.5rem 1rem 3rem 1rem !important; }
-            [data-testid="stMetricValue"] { font-size: 26px !important; }
+            .block-container { padding: 1rem 1rem 3rem 1rem !important; }
+            [data-testid="stMetricValue"] { font-size: 24px !important; }
+            .sd-live-bar { flex-wrap: wrap; gap: 14px; }
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -948,9 +1095,7 @@ class Recommendation(BaseModel):
 
 class ImprovementBrief(BaseModel):
     executive_summary: str = Field(max_length=1800)
-    recommendations: list[Recommendation] = Field(
-        min_length=1, max_length=5
-    )
+    recommendations: list[Recommendation] = Field(min_length=1, max_length=5)
     caveats: list[str] = Field(max_length=5)
 
 
@@ -991,11 +1136,7 @@ def request_json(
     payload: dict,
     max_tokens: int = 4500,
 ) -> dict:
-    with Groq(
-        api_key=api_key,
-        timeout=75.0,
-        max_retries=1,
-    ) as client:
+    with Groq(api_key=api_key, timeout=75.0, max_retries=1) as client:
         result = client.chat.completions.create(
             model=model,
             temperature=0.1,
@@ -1003,47 +1144,30 @@ def request_json(
             response_format={"type": "json_object"},
             messages=[
                 {"role": "system", "content": system_prompt},
-                {
-                    "role": "user",
-                    "content": json.dumps(payload, ensure_ascii=False),
-                },
+                {"role": "user", "content": json.dumps(payload, ensure_ascii=False)},
             ],
         )
-
     choice = result.choices[0]
     if choice.finish_reason == "length":
         raise ValueError("Output was truncated.")
-
     return json.loads(choice.message.content or "{}")
 
 
 def request_text(
-    api_key: str,
-    model: str,
-    system_prompt: str,
-    payload: dict,
+    api_key: str, model: str, system_prompt: str, payload: dict
 ) -> str:
-    with Groq(
-        api_key=api_key,
-        timeout=75.0,
-        max_retries=1,
-    ) as client:
+    with Groq(api_key=api_key, timeout=75.0, max_retries=1) as client:
         result = client.chat.completions.create(
             model=model,
             temperature=0.3,
             max_tokens=1000,
             messages=[
                 {"role": "system", "content": system_prompt},
-                {
-                    "role": "user",
-                    "content": json.dumps(payload, ensure_ascii=False),
-                },
+                {"role": "user", "content": json.dumps(payload, ensure_ascii=False)},
             ],
         )
-
     if result.choices[0].finish_reason == "length":
         raise ValueError("Output was truncated.")
-
     text = (result.choices[0].message.content or "").strip()
     if not text:
         raise ValueError("Empty response.")
@@ -1051,22 +1175,17 @@ def request_text(
 
 
 def fingerprint(frame: pd.DataFrame, extra: str = "") -> str:
-    serialized = frame.to_json(
-        orient="records", date_format="iso", force_ascii=False
-    )
+    serialized = frame.to_json(orient="records", date_format="iso", force_ascii=False)
     return hashlib.sha256((serialized + extra).encode()).hexdigest()
 
 
 def safe_csv(frame: pd.DataFrame) -> bytes:
-    """Reduce spreadsheet formula-injection risk in exported text cells."""
     output = frame.copy()
 
     def protect(value):
         if isinstance(value, str):
             stripped = value.lstrip()
-            if stripped.startswith(("=", "+", "-", "@")) or value.startswith(
-                ("\t", "\r", "\n")
-            ):
+            if stripped.startswith(("=", "+", "-", "@")) or value.startswith(("\t", "\r", "\n")):
                 return "'" + value
         return value
 
@@ -1082,7 +1201,6 @@ def safe_csv(frame: pd.DataFrame) -> bytes:
 
 
 def render_comment(text: str):
-    # Customer content is escaped before inserting it into HTML.
     st.markdown(
         f'<div class="sd-comment">{html.escape(str(text))}</div>',
         unsafe_allow_html=True,
@@ -1090,43 +1208,50 @@ def render_comment(text: str):
 
 
 def style_chart(fig):
+    """Darker, more dramatic Plotly styling."""
     fig.update_layout(
-        height=340,
-        margin=dict(l=8, r=8, t=16, b=8),
+        height=360,
+        margin=dict(l=10, r=10, t=20, b=10),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         font=dict(
-            family="Inter, sans-serif",
-            size=12,
-            color="#94a3b8",
+            family="JetBrains Mono, Inter, monospace",
+            size=11,
+            color="#8b93a7",
+        ),
+        legend=dict(
+            bgcolor="rgba(10, 14, 26, 0.6)",
+            bordercolor="rgba(148, 163, 184, 0.15)",
+            borderwidth=1,
+            font=dict(size=11, color="#b3bcd0"),
         ),
         legend_title_text="",
         colorway=["#6366f1", "#22d3ee", "#a78bfa", "#f59e0b", "#f43f5e"],
         hoverlabel=dict(
-            bgcolor="rgba(14, 18, 32, 0.95)",
-            bordercolor="rgba(129, 140, 248, 0.4)",
-            font=dict(family="Inter, sans-serif", size=12, color="#f5f7fb"),
+            bgcolor="rgba(14, 18, 32, 0.96)",
+            bordercolor="rgba(129, 140, 248, 0.5)",
+            font=dict(family="JetBrains Mono, monospace", size=11, color="#f6f8fc"),
         ),
+        transition=dict(duration=400, easing="cubic-in-out"),
     )
     fig.update_xaxes(
-        gridcolor="rgba(148,163,184,0.06)",
+        gridcolor="rgba(148,163,184,0.055)",
         zerolinecolor="rgba(148,163,184,0.12)",
-        color="#7a8398",
-        tickfont=dict(size=11),
-        linecolor="rgba(148,163,184,0.12)",
+        color="#6f788d",
+        tickfont=dict(size=10, family="JetBrains Mono, monospace"),
+        linecolor="rgba(148,163,184,0.10)",
     )
     fig.update_yaxes(
-        gridcolor="rgba(148,163,184,0.06)",
+        gridcolor="rgba(148,163,184,0.055)",
         zerolinecolor="rgba(148,163,184,0.12)",
-        color="#7a8398",
-        tickfont=dict(size=11),
-        linecolor="rgba(148,163,184,0.12)",
+        color="#6f788d",
+        tickfont=dict(size=10, family="JetBrains Mono, monospace"),
+        linecolor="rgba(148,163,184,0.10)",
     )
     return fig
 
 
 def theme_table(frame: pd.DataFrame) -> pd.DataFrame:
-    """All counts and priority scores are computed by Python."""
     columns = [
         "Topic", "Feedback", "Negative", "Mixed",
         "High / Critical", "Feature requests", "Priority score",
@@ -1140,7 +1265,6 @@ def theme_table(frame: pd.DataFrame) -> pd.DataFrame:
         mixed = int(group["sentiment"].eq("Mixed").sum())
         urgent = int(group["urgency"].isin(["High", "Critical"]).sum())
         requests = int(group["feature_request"].sum())
-
         rows.append({
             "Topic": topic,
             "Feedback": len(group),
@@ -1148,15 +1272,11 @@ def theme_table(frame: pd.DataFrame) -> pd.DataFrame:
             "Mixed": mixed,
             "High / Critical": urgent,
             "Feature requests": requests,
-            "Priority score": (
-                2 * negative + mixed + 3 * urgent + 2 * requests
-            ),
+            "Priority score": (2 * negative + mixed + 3 * urgent + 2 * requests),
         })
 
     return pd.DataFrame(rows).sort_values(
-        ["Priority score", "Feedback"],
-        ascending=False,
-        ignore_index=True,
+        ["Priority score", "Feedback"], ascending=False, ignore_index=True
     )
 
 
@@ -1187,7 +1307,6 @@ def demo_data() -> pd.DataFrame:
         ("Billing", 3, "Support", "Where can I update the billing contact?"),
         ("Analytics", 2, "Review", "CSV exports fail on large reports. This has happened three times."),
     ]
-
     return pd.DataFrame(
         [
             {
@@ -1210,10 +1329,7 @@ def column_picker(
     required: bool = False,
 ):
     options = columns if required else ["— None —"] + columns
-    match = next(
-        (column for column in columns if column.lower() in candidates),
-        None,
-    )
+    match = next((column for column in columns if column.lower() in candidates), None)
     index = options.index(match) if match else 0
     selected = st.selectbox(label, options, index=index, key=key)
     return None if selected == "— None —" else selected
@@ -1224,9 +1340,7 @@ def column_picker(
 # =========================================================
 
 def classify_feedback(
-    frame: pd.DataFrame,
-    api_key: str,
-    model: str,
+    frame: pd.DataFrame, api_key: str, model: str
 ) -> tuple[pd.DataFrame, list[str]]:
     prompt = f"""
 You classify customer feedback for a product analytics tool.
@@ -1257,17 +1371,14 @@ Rules:
 
     records = []
     failures = []
-    progress = st.progress(0, text="Preparing feedback analysis…")
+    progress = st.progress(0, text="INITIALIZING CLASSIFIER · 0%")
 
     try:
         for start in range(0, len(frame), BATCH_SIZE):
             batch = frame.iloc[start:start + BATCH_SIZE]
             payload = {
                 "feedback": [
-                    {
-                        "id": row["id"],
-                        "text": row["text"][:MAX_TEXT_CHARS],
-                    }
+                    {"id": row["id"], "text": row["text"][:MAX_TEXT_CHARS]}
                     for _, row in batch.iterrows()
                 ]
             }
@@ -1278,10 +1389,7 @@ Rules:
                 expected = set(batch["id"])
                 received = [item.id for item in parsed.items]
 
-                if (
-                    set(received) != expected
-                    or len(received) != len(expected)
-                ):
+                if set(received) != expected or len(received) != len(expected):
                     raise ValueError("Missing, duplicate, or unexpected IDs.")
 
                 for item in parsed.items:
@@ -1293,7 +1401,6 @@ Rules:
 
             except Exception as error:
                 failures.append(friendly_error(error))
-
                 for feedback_id in batch["id"]:
                     records.append({
                         "id": feedback_id,
@@ -1304,9 +1411,6 @@ Rules:
                         "feature_request": False,
                         "issue_summary": "",
                     })
-
-                # Avoid repeatedly calling an API that has rejected access
-                # or exhausted its rate limit.
                 if isinstance(error, (AuthenticationError, RateLimitError)):
                     remaining = frame.iloc[start + len(batch):]
                     for feedback_id in remaining["id"]:
@@ -1322,9 +1426,10 @@ Rules:
                     break
 
             completed = min(start + BATCH_SIZE, len(frame))
+            pct = int(completed / len(frame) * 100)
             progress.progress(
                 completed / len(frame),
-                text=f"Processed {completed} of {len(frame)} comments",
+                text=f"CLASSIFYING FEEDBACK · {completed}/{len(frame)} · {pct}%",
             )
     finally:
         progress.empty()
@@ -1332,23 +1437,14 @@ Rules:
     result = frame.merge(
         pd.DataFrame(records), on="id", how="left", validate="one_to_one"
     )
-    result["analysis_truncated"] = (
-        result["text"].str.len() > MAX_TEXT_CHARS
-    )
+    result["analysis_truncated"] = result["text"].str.len() > MAX_TEXT_CHARS
     return result, list(dict.fromkeys(failures))
 
 
 def generate_brief(
-    frame: pd.DataFrame,
-    api_key: str,
-    model: str,
+    frame: pd.DataFrame, api_key: str, model: str
 ) -> ImprovementBrief:
-    # Balanced, bounded evidence sample across primary topics.
-    evidence = (
-        frame.groupby("primary_topic", group_keys=False)
-        .head(4)
-        .head(40)
-    )
+    evidence = frame.groupby("primary_topic", group_keys=False).head(4).head(40)
 
     payload = {
         "scope": {
@@ -1415,7 +1511,7 @@ with st.sidebar:
     st.caption("CUSTOMER INTELLIGENCE WORKSPACE")
     st.divider()
 
-    st.markdown("##### AI connection")
+    st.markdown("##### AI CONNECTION")
     if api_key:
         st.success("Groq key configured", icon="✅")
     else:
@@ -1431,12 +1527,12 @@ with st.sidebar:
     ).strip()
 
     st.divider()
-    st.markdown("##### Workspace limits")
+    st.markdown("##### WORKSPACE LIMITS")
     st.caption(
         f"• CSV upload: 10 MB\n"
         f"• Source preview: {MAX_SOURCE_ROWS:,} rows\n"
         f"• Analysis: {MAX_ANALYSIS_ROWS} comments per run\n"
-        f"• AI input: first {MAX_TEXT_CHARS:,} characters per comment"
+        f"• AI input: first {MAX_TEXT_CHARS:,} chars per comment"
     )
 
     st.info(
@@ -1455,7 +1551,41 @@ with st.sidebar:
 
 
 # =========================================================
-# Header
+# Live status bar
+# =========================================================
+
+st.markdown(
+    """
+    <div class="sd-live-bar">
+        <div class="sd-live-item">
+            <span class="sd-live-dot" style="background:#10b981;color:#10b981;"></span>
+            <span class="sd-live-key">SYSTEM</span>
+            <span class="sd-live-val">OPERATIONAL</span>
+        </div>
+        <div class="sd-live-item">
+            <span class="sd-live-key">LATENCY</span>
+            <span class="sd-live-val">24<span style="color:var(--txt-3);font-size:9px;margin-left:2px;">ms</span></span>
+        </div>
+        <div class="sd-live-item">
+            <span class="sd-live-key">STREAM</span>
+            <span class="sd-live-val" style="color:#22d3ee;">ACTIVE</span>
+        </div>
+        <div class="sd-live-item">
+            <span class="sd-live-key">MODEL</span>
+            <span class="sd-live-val" style="color:#a5b4fc;">GROQ · LLM</span>
+        </div>
+        <div class="sd-live-item sd-live-spacer">
+            <span class="sd-live-key">SESSION</span>
+            <span class="sd-live-val">ENCRYPTED</span>
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
+
+# =========================================================
+# Hero
 # =========================================================
 
 st.markdown(
@@ -1481,18 +1611,18 @@ st.markdown(
             </div>
             <div class="sd-hero-stats">
                 <div class="sd-stat">
-                    <span class="sd-stat-label">Engine</span>
+                    <span class="sd-stat-label">ENGINE</span>
                     <span class="sd-stat-value">
                         <span class="sd-stat-dot" style="background:#10b981;color:#10b981;"></span>
                         ONLINE
                     </span>
                 </div>
                 <div class="sd-stat">
-                    <span class="sd-stat-label">Mode</span>
+                    <span class="sd-stat-label">MODE</span>
                     <span class="sd-stat-value">EVIDENCE-BASED</span>
                 </div>
                 <div class="sd-stat">
-                    <span class="sd-stat-label">Review</span>
+                    <span class="sd-stat-label">REVIEW</span>
                     <span class="sd-stat-value">HUMAN-IN-LOOP</span>
                 </div>
             </div>
@@ -1512,9 +1642,7 @@ with st.expander(
     expanded="analysis" not in st.session_state,
 ):
     source = st.radio(
-        "Data source",
-        ["Demo dataset", "Upload CSV"],
-        horizontal=True,
+        "Data source", ["Demo dataset", "Upload CSV"], horizontal=True
     )
 
     if source == "Demo dataset":
@@ -1532,15 +1660,12 @@ with st.expander(
             type=["csv"],
             help="UTF-8 CSV with a review, comment, message, or text column.",
         )
-
         if uploaded is None:
             st.info("Upload a CSV to continue, or switch to the demo dataset.")
             st.stop()
-
         if uploaded.size > MAX_UPLOAD_BYTES:
             st.error("This app accepts files up to 10 MB.")
             st.stop()
-
         try:
             raw = pd.read_csv(
                 io.BytesIO(uploaded.getvalue()),
@@ -1553,7 +1678,6 @@ with st.expander(
                 "with a header row and try again."
             )
             st.stop()
-
         if len(raw) > MAX_SOURCE_ROWS:
             raw = raw.head(MAX_SOURCE_ROWS)
             st.warning(f"Only the first {MAX_SOURCE_ROWS:,} source rows were loaded.")
@@ -1564,11 +1688,9 @@ with st.expander(
 
     raw.columns = [str(column) for column in raw.columns]
     columns = raw.columns.tolist()
-    mapping_key = hashlib.sha256(
-        json.dumps([source, columns]).encode()
-    ).hexdigest()[:12]
+    mapping_key = hashlib.sha256(json.dumps([source, columns]).encode()).hexdigest()[:12]
 
-    st.markdown("##### Map your columns")
+    st.markdown("##### MAP YOUR COLUMNS")
     c1, c2, c3, c4, c5 = st.columns(5)
 
     with c1:
@@ -1604,41 +1726,26 @@ with st.expander(
 
     normalized = pd.DataFrame(index=raw.index)
     normalized["text"] = raw[text_col].fillna("").astype(str).str.strip()
-
     normalized["date"] = (
-        pd.to_datetime(
-            raw[date_col],
-            errors="coerce",
-            utc=True,
-            format="mixed",
-        ).dt.tz_convert(None)
-        if date_col
-        else pd.NaT
+        pd.to_datetime(raw[date_col], errors="coerce", utc=True, format="mixed").dt.tz_convert(None)
+        if date_col else pd.NaT
     )
-
     normalized["product"] = (
         raw[product_col].fillna("Unknown").astype(str).str.strip()
-        if product_col
-        else "All products"
+        if product_col else "All products"
     )
     normalized["source_category"] = (
         raw[category_col].fillna("Unknown").astype(str).str.strip()
-        if category_col
-        else "Unspecified"
+        if category_col else "Unspecified"
     )
     normalized["rating"] = (
         pd.to_numeric(raw[rating_col], errors="coerce")
-        if rating_col
-        else float("nan")
+        if rating_col else float("nan")
     )
 
     normalized["product"] = normalized["product"].replace("", "Unknown")
-    normalized["source_category"] = normalized["source_category"].replace(
-        "", "Unknown"
-    )
-    normalized["rating"] = normalized["rating"].replace(
-        [float("inf"), float("-inf")], float("nan")
-    )
+    normalized["source_category"] = normalized["source_category"].replace("", "Unknown")
+    normalized["rating"] = normalized["rating"].replace([float("inf"), float("-inf")], float("nan"))
 
     empty_count = int(normalized["text"].eq("").sum())
     normalized = normalized[normalized["text"].ne("")].reset_index(drop=True)
@@ -1646,7 +1753,6 @@ with st.expander(
     if normalized.empty:
         st.error("The selected feedback column contains no non-empty comments.")
         st.stop()
-
     if empty_count:
         st.caption(f"Skipped {empty_count} rows with empty feedback.")
 
@@ -1660,15 +1766,13 @@ with st.expander(
     ))
 
     dataset = normalized.head(limit).copy()
-    dataset.insert(
-        0, "id", [f"FB-{i:04d}" for i in range(1, len(dataset) + 1)]
-    )
+    dataset.insert(0, "id", [f"FB-{i:04d}" for i in range(1, len(dataset) + 1)])
 
     st.dataframe(dataset.head(8), hide_index=True, use_container_width=True)
     st.caption(
-        f"{len(dataset):,} comments selected from "
-        f"{len(normalized):,} non-empty rows. Duplicate comments are retained. "
-        "Ratings are used as supplied; no rating scale is assumed."
+        f"{len(dataset):,} comments selected from {len(normalized):,} non-empty rows. "
+        "Duplicate comments are retained. Ratings are used as supplied; "
+        "no rating scale is assumed."
     )
 
     if date_col and dataset["date"].isna().any():
@@ -1677,9 +1781,7 @@ with st.expander(
             "ISO-format dates such as 2026-04-15 are recommended."
         )
 
-    truncated_count = int(
-        (dataset["text"].str.len() > MAX_TEXT_CHARS).sum()
-    )
+    truncated_count = int((dataset["text"].str.len() > MAX_TEXT_CHARS).sum())
     if truncated_count:
         st.warning(
             f"{truncated_count} comments exceed {MAX_TEXT_CHARS:,} characters. "
@@ -1742,44 +1844,26 @@ st.markdown("### 02 · Explore your signals")
 
 with st.container(border=True):
     a, b, c, d = st.columns(4)
-
     with a:
-        selected_products = st.multiselect(
-            "Product", sorted(analyzed["product"].unique())
-        )
+        selected_products = st.multiselect("Product", sorted(analyzed["product"].unique()))
     with b:
-        selected_categories = st.multiselect(
-            "Source category", sorted(analyzed["source_category"].unique())
-        )
+        selected_categories = st.multiselect("Source category", sorted(analyzed["source_category"].unique()))
     with c:
-        selected_topics = st.multiselect(
-            "AI primary topic", sorted(analyzed["primary_topic"].unique())
-        )
+        selected_topics = st.multiselect("AI primary topic", sorted(analyzed["primary_topic"].unique()))
     with d:
-        selected_sentiments = st.multiselect(
-            "Sentiment", sorted(analyzed["sentiment"].unique())
-        )
+        selected_sentiments = st.multiselect("Sentiment", sorted(analyzed["sentiment"].unique()))
 
     a, b, c = st.columns(3)
     with a:
-        selected_urgencies = st.multiselect(
-            "Urgency", sorted(analyzed["urgency"].unique())
-        )
+        selected_urgencies = st.multiselect("Urgency", sorted(analyzed["urgency"].unique()))
     with b:
-        selected_ratings = st.multiselect(
-            "Rating", sorted(analyzed["rating"].dropna().unique().tolist())
-        )
+        selected_ratings = st.multiselect("Rating", sorted(analyzed["rating"].dropna().unique().tolist()))
     with c:
         feature_only = st.checkbox("Feature requests only")
-        search = st.text_input(
-            "Search comments", placeholder="Search exact text…"
-        )
+        search = st.text_input("Search comments", placeholder="Search exact text…")
 
     valid_dates = analyzed["date"].dropna()
-    date_filter_enabled = st.checkbox(
-        "Filter by date",
-        disabled=valid_dates.empty,
-    )
+    date_filter_enabled = st.checkbox("Filter by date", disabled=valid_dates.empty)
     date_range = None
     include_missing_dates = False
 
@@ -1808,9 +1892,7 @@ if feature_only:
     filtered = filtered[filtered["feature_request"]]
 
 if search:
-    filtered = filtered[
-        filtered["text"].str.contains(search, case=False, regex=False, na=False)
-    ]
+    filtered = filtered[filtered["text"].str.contains(search, case=False, regex=False, na=False)]
 
 if date_filter_enabled and date_range and len(date_range) == 2:
     start_date, end_date = date_range
@@ -1830,28 +1912,24 @@ classified = filtered[filtered["sentiment"].ne("Not analyzed")].copy()
 view_fingerprint = fingerprint(filtered, current_fingerprint)
 
 st.caption(
-    f"Showing {len(filtered):,} comments · "
-    f"{len(classified):,} successfully classified · "
+    f"Showing {len(filtered):,} comments · {len(classified):,} successfully classified · "
     "All charts and AI briefs use the current filters."
 )
 
 m1, m2, m3, m4, m5 = st.columns(5)
-m1.metric("Feedback", f"{len(filtered):,}")
+m1.metric("FEEDBACK", f"{len(filtered):,}")
 m2.metric(
-    "Positive",
+    "POSITIVE",
     f"{classified['sentiment'].eq('Positive').mean():.0%}"
     if not classified.empty else "—",
 )
 m3.metric(
-    "Negative",
+    "NEGATIVE",
     f"{classified['sentiment'].eq('Negative').mean():.0%}"
     if not classified.empty else "—",
 )
-m4.metric(
-    "High / Critical",
-    int(classified["urgency"].isin(["High", "Critical"]).sum()),
-)
-m5.metric("Feature requests", int(classified["feature_request"].sum()))
+m4.metric("HIGH / CRITICAL", int(classified["urgency"].isin(["High", "Critical"]).sum()))
+m5.metric("FEATURE REQUESTS", int(classified["feature_request"].sum()))
 st.caption("Sentiment percentages exclude comments that were not analyzed.")
 
 
@@ -1878,23 +1956,19 @@ with overview_tab:
     with left, st.container(border=True):
         st.markdown("#### Sentiment distribution")
         sentiment_counts = (
-            filtered["sentiment"]
-            .value_counts()
-            .rename_axis("Sentiment")
-            .reset_index(name="Count")
+            filtered["sentiment"].value_counts()
+            .rename_axis("Sentiment").reset_index(name="Count")
         )
         fig = px.pie(
             sentiment_counts,
-            names="Sentiment",
-            values="Count",
-            hole=0.68,
-            color="Sentiment",
-            color_discrete_map=SENTIMENT_COLORS,
+            names="Sentiment", values="Count", hole=0.72,
+            color="Sentiment", color_discrete_map=SENTIMENT_COLORS,
         )
         fig.update_traces(
             textinfo="percent",
             textposition="outside",
-            marker=dict(line=dict(color="rgba(4,5,10,0.9)", width=2)),
+            marker=dict(line=dict(color="rgba(3,4,7,0.95)", width=2)),
+            textfont=dict(family="JetBrains Mono, monospace", size=11),
         )
         st.plotly_chart(
             style_chart(fig), use_container_width=True,
@@ -1909,26 +1983,19 @@ with overview_tab:
             .rename_axis("Topic").reset_index(name="Mentions")
             .sort_values("Mentions")
         )
-
         if topic_counts.empty:
             st.info("No classified topics available.")
         else:
             fig = px.bar(
-                topic_counts,
-                x="Mentions",
-                y="Topic",
-                orientation="h",
-                text="Mentions",
+                topic_counts, x="Mentions", y="Topic",
+                orientation="h", text="Mentions",
                 color_discrete_sequence=["#818cf8"],
             )
             fig.update_layout(xaxis_title=None, yaxis_title=None)
             fig.update_traces(
-                marker=dict(
-                    line=dict(width=0),
-                    cornerradius=6,
-                ),
+                marker=dict(line=dict(width=0), cornerradius=8),
                 textposition="outside",
-                textfont=dict(color="#cbd5e1", size=11),
+                textfont=dict(color="#cbd5e1", size=11, family="JetBrains Mono, monospace"),
             )
             st.plotly_chart(
                 style_chart(fig), use_container_width=True,
@@ -1943,19 +2010,13 @@ with overview_tab:
             st.info("Map a valid date column to see the timeline.")
         else:
             dated["day"] = dated["date"].dt.floor("D")
-            timeline = (
-                dated.groupby(["day", "sentiment"])
-                .size().reset_index(name="Comments")
-            )
+            timeline = dated.groupby(["day", "sentiment"]).size().reset_index(name="Comments")
             fig = px.bar(
-                timeline,
-                x="day",
-                y="Comments",
-                color="sentiment",
+                timeline, x="day", y="Comments", color="sentiment",
                 color_discrete_map=SENTIMENT_COLORS,
                 labels={"day": "Date", "sentiment": "Sentiment"},
             )
-            fig.update_traces(marker=dict(line=dict(width=0), cornerradius=4))
+            fig.update_traces(marker=dict(line=dict(width=0), cornerradius=6))
             st.plotly_chart(
                 style_chart(fig), use_container_width=True,
                 config={"displayModeBar": False},
@@ -1971,19 +2032,15 @@ with themes_tab:
         "Themes are grouped by AI primary topic, not deduplicated root causes. "
         "Counts represent comments, not unique customers."
     )
-
     themes = theme_table(classified)
     st.dataframe(themes, hide_index=True, use_container_width=True)
-
     st.caption(
         "Priority score = 2 × negative comments + mixed comments "
         "+ 3 × high/critical comments + 2 × feature requests. "
         "Signals can overlap. This is a triage heuristic, not predicted ROI."
     )
 
-    complaints = classified[
-        classified["sentiment"].isin(["Negative", "Mixed"])
-    ]
+    complaints = classified[classified["sentiment"].isin(["Negative", "Mixed"])]
     recurring = complaints["primary_topic"].value_counts()
     recurring = recurring[recurring >= 2]
 
@@ -1994,17 +2051,13 @@ with themes_tab:
             with st.expander(f"{topic} · {count} negative/mixed comments"):
                 examples = complaints[complaints["primary_topic"].eq(topic)]
                 for _, row in examples.head(6).iterrows():
-                    st.caption(
-                        f"{row['id']} · {row['product']} · {row['urgency']}"
-                    )
+                    st.caption(f"{row['id']} · {row['product']} · {row['urgency']}")
                     render_comment(row["text"])
                     st.write("")
 
     st.download_button(
-        "Download theme metrics",
-        safe_csv(themes),
-        "signaldesk_themes.csv",
-        "text/csv",
+        "Download theme metrics", safe_csv(themes),
+        "signaldesk_themes.csv", "text/csv",
     )
 
 
@@ -2012,22 +2065,15 @@ with themes_tab:
 
 with evidence_tab:
     st.markdown("#### Inspect the source behind every signal")
-
     display_columns = [
         "id", "product", "sentiment", "primary_topic",
         "urgency", "feature_request", "rating", "issue_summary",
     ]
     st.dataframe(
-        filtered[display_columns],
-        hide_index=True,
-        use_container_width=True,
+        filtered[display_columns], hide_index=True, use_container_width=True,
         column_config={
-            "feature_request": st.column_config.CheckboxColumn(
-                "Feature request"
-            ),
-            "issue_summary": st.column_config.TextColumn(
-                "AI issue summary", width="large"
-            ),
+            "feature_request": st.column_config.CheckboxColumn("Feature request"),
+            "issue_summary": st.column_config.TextColumn("AI issue summary", width="large"),
         },
     )
 
@@ -2040,7 +2086,6 @@ with evidence_tab:
         ),
         key=f"evidence_{view_fingerprint[:12]}",
     )
-
     row = filtered.loc[filtered["id"].eq(evidence_id)].iloc[0]
 
     with st.expander(f"Original comment · {evidence_id}", expanded=True):
@@ -2060,10 +2105,8 @@ with evidence_tab:
 
     st.download_button(
         "Download filtered analysis",
-        safe_csv(filtered),
-        "signaldesk_feedback_analysis.csv",
-        "text/csv",
-        use_container_width=True,
+        safe_csv(filtered), "signaldesk_feedback_analysis.csv",
+        "text/csv", use_container_width=True,
     )
 
 
@@ -2101,13 +2144,9 @@ with brief_tab:
             st.write(brief.executive_summary)
 
         export_lines = [
-            "# SignalDesk — Product Improvement Brief",
-            "",
-            f"Scope: {len(classified)} classified comments.",
-            "",
-            "## Executive summary",
-            brief.executive_summary,
-            "",
+            "# SignalDesk — Product Improvement Brief", "",
+            f"Scope: {len(classified)} classified comments.", "",
+            "## Executive summary", brief.executive_summary, "",
             "## Recommendations",
         ]
 
@@ -2119,15 +2158,11 @@ with brief_tab:
                 )
                 st.write("**Why it matters:**", recommendation.rationale)
                 st.write("**Suggested action:**", recommendation.suggested_action)
-
                 with st.expander(
-                    "Supporting evidence · "
-                    + ", ".join(recommendation.evidence_ids)
+                    "Supporting evidence · " + ", ".join(recommendation.evidence_ids)
                 ):
                     for feedback_id in recommendation.evidence_ids:
-                        evidence = classified[
-                            classified["id"].eq(feedback_id)
-                        ]
+                        evidence = classified[classified["id"].eq(feedback_id)]
                         if not evidence.empty:
                             st.caption(feedback_id)
                             render_comment(evidence.iloc[0]["text"])
@@ -2137,8 +2172,7 @@ with brief_tab:
                 f"### {index}. [{recommendation.priority}] {recommendation.title}",
                 recommendation.rationale,
                 f"Action: {recommendation.suggested_action}",
-                f"Evidence: {', '.join(recommendation.evidence_ids)}",
-                "",
+                f"Evidence: {', '.join(recommendation.evidence_ids)}", "",
             ])
 
         if brief.caveats:
@@ -2148,10 +2182,8 @@ with brief_tab:
             export_lines.extend(["## Caveats", *brief.caveats])
 
         st.download_button(
-            "Download brief as Markdown",
-            "\n".join(export_lines),
-            "signaldesk_improvement_brief.md",
-            "text/markdown",
+            "Download brief as Markdown", "\n".join(export_lines),
+            "signaldesk_improvement_brief.md", "text/markdown",
         )
     else:
         st.info("Generate a brief for the current filtered view.")
@@ -2194,12 +2226,9 @@ with response_tab:
         )
 
         response_fingerprint = hashlib.sha256(
-            json.dumps(
-                [
-                    view_fingerprint, reply_id, tone,
-                    channel, brand, context, model,
-                ]
-            ).encode()
+            json.dumps([
+                view_fingerprint, reply_id, tone, channel, brand, context, model,
+            ]).encode()
         ).hexdigest()
 
         if st.button(
@@ -2223,12 +2252,9 @@ Avoid saying "as an AI". Aim for 80–150 words, shorter for concise tone.
 """
             payload = {
                 "customer_comment": reply_row["text"][:MAX_TEXT_CHARS],
-                "tone": tone,
-                "channel": channel,
-                "team_name": brand[:160],
-                "verified_context": context,
+                "tone": tone, "channel": channel,
+                "team_name": brand[:160], "verified_context": context,
             }
-
             try:
                 with st.spinner("Drafting a customer-ready response…"):
                     draft = request_text(api_key, model, prompt, payload)
@@ -2236,10 +2262,7 @@ Avoid saying "as an AI". Aim for 80–150 words, shorter for concise tone.
                     "fingerprint": response_fingerprint,
                     "text": draft,
                 }
-                # Remove a previous editor value when regenerating.
-                st.session_state.pop(
-                    f"draft_editor_{response_fingerprint}", None
-                )
+                st.session_state.pop(f"draft_editor_{response_fingerprint}", None)
             except Exception as error:
                 st.error(friendly_error(error))
 
@@ -2247,11 +2270,7 @@ Avoid saying "as an AI". Aim for 80–150 words, shorter for concise tone.
         with st.container(border=True):
             st.markdown("##### Response preview")
             saved_draft = st.session_state.get("draft")
-
-            if (
-                saved_draft
-                and saved_draft["fingerprint"] == response_fingerprint
-            ):
+            if saved_draft and saved_draft["fingerprint"] == response_fingerprint:
                 edited = st.text_area(
                     "Edit before sending",
                     value=saved_draft["text"],
@@ -2259,15 +2278,11 @@ Avoid saying "as an AI". Aim for 80–150 words, shorter for concise tone.
                     key=f"draft_editor_{response_fingerprint}",
                 )
                 st.download_button(
-                    "Download response",
-                    edited,
-                    f"response_{reply_id}.txt",
-                    "text/plain",
+                    "Download response", edited,
+                    f"response_{reply_id}.txt", "text/plain",
                     use_container_width=True,
                 )
-                st.caption(
-                    "Verify facts, tone, and company policy before using."
-                )
+                st.caption("Verify facts, tone, and company policy before using.")
             else:
                 st.info("Choose a comment and generate a response draft.")
 
