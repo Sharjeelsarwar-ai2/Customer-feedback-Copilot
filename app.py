@@ -8,7 +8,6 @@ from typing import Literal
 
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
 import streamlit as st
 from groq import (
     Groq,
@@ -68,16 +67,11 @@ Topic = Literal[
 
 
 # =========================================================
-# HTML rendering helper — prevents markdown code-block takeover
+# HTML helpers — prevent markdown from hijacking raw HTML
 # =========================================================
 
 def compact_html(s: str) -> str:
-    """
-    Strip leading whitespace from every non-empty line.
-    Markdown treats any line indented 4+ spaces as a code block,
-    which is why raw HTML was rendering as text. This makes every
-    line start at column 0, so the HTML passes through untouched.
-    """
+    """Strip leading whitespace on every non-empty line."""
     lines = []
     for line in s.split("\n"):
         lines.append(line.lstrip() if line.strip() else "")
@@ -85,16 +79,14 @@ def compact_html(s: str) -> str:
 
 
 def render_html(markup: str) -> None:
-    """Render raw HTML safely through Streamlit."""
     st.markdown(compact_html(markup), unsafe_allow_html=True)
 
 
 # =========================================================
-# SVG CHART GENERATORS — for the hero
+# SVG CHART GENERATORS — hero
 # =========================================================
 
 def build_donut_svg(sentiment_counts: dict, total: int) -> str:
-    """Animated SVG donut chart for sentiment distribution."""
     if not sentiment_counts or total == 0:
         return (
             '<svg viewBox="0 0 200 200" width="100%" height="100%" '
@@ -180,7 +172,6 @@ def build_donut_svg(sentiment_counts: dict, total: int) -> str:
 
 
 def build_topics_svg(topic_counts: dict) -> str:
-    """Animated SVG horizontal bar chart for top topics."""
     if not topic_counts:
         bars = []
         for i in range(5):
@@ -249,7 +240,6 @@ def build_topics_svg(topic_counts: dict) -> str:
 
 
 def build_hero_html(hero_data) -> str:
-    """Full hero markup with embedded SVG charts. No indentation."""
     if hero_data:
         donut_svg = build_donut_svg(hero_data["sentiment_counts"], hero_data["total"])
         topics_svg = build_topics_svg(hero_data["topic_counts"])
@@ -407,10 +397,6 @@ st.markdown(
             50%      { opacity: 0.5; }
         }
 
-        /* ============================================================
-           LIVE STATUS BAR
-           ============================================================ */
-
         .sd-live-bar {
             display: flex;
             align-items: center;
@@ -467,10 +453,6 @@ st.markdown(
             50%      { opacity: 0.35; transform: scale(0.7); }
         }
         .sd-live-spacer { margin-left: auto; }
-
-        /* ============================================================
-           HERO — with integrated live charts
-           ============================================================ */
 
         .sd-hero {
             position: relative;
@@ -683,10 +665,6 @@ st.markdown(
             border-top: 1px solid rgba(255, 255, 255, 0.035);
         }
 
-        /* ============================================================
-           SIDEBAR
-           ============================================================ */
-
         [data-testid="stSidebar"] {
             background: linear-gradient(180deg,
                 rgba(6, 8, 16, 0.98) 0%,
@@ -725,10 +703,6 @@ st.markdown(
             line-height: 1.7;
         }
 
-        /* ============================================================
-           EXPANDERS
-           ============================================================ */
-
         [data-testid="stExpander"] {
             background:
                 linear-gradient(180deg,
@@ -762,10 +736,6 @@ st.markdown(
             background: rgba(99, 102, 241, 0.05);
         }
 
-        /* ============================================================
-           CARDS
-           ============================================================ */
-
         [data-testid="stVerticalBlockBorderWrapper"] {
             background:
                 linear-gradient(180deg,
@@ -781,10 +751,6 @@ st.markdown(
         [data-testid="stVerticalBlockBorderWrapper"]:hover {
             border-color: rgba(129, 140, 248, 0.24);
         }
-
-        /* ============================================================
-           METRICS
-           ============================================================ */
 
         [data-testid="stMetric"] {
             position: relative;
@@ -851,10 +817,6 @@ st.markdown(
             text-shadow: 0 0 30px rgba(129, 140, 248, 0.25);
         }
 
-        /* ============================================================
-           TABS
-           ============================================================ */
-
         .stTabs [data-baseweb="tab-list"] {
             display: inline-flex;
             gap: 4px;
@@ -897,10 +859,6 @@ st.markdown(
             display: none !important;
             background: transparent !important;
         }
-
-        /* ============================================================
-           BUTTONS
-           ============================================================ */
 
         .stButton > button,
         .stDownloadButton > button {
@@ -956,10 +914,6 @@ st.markdown(
             cursor: not-allowed;
             transform: none !important;
         }
-
-        /* ============================================================
-           INPUTS
-           ============================================================ */
 
         .stTextInput input,
         .stTextArea textarea,
@@ -1050,10 +1004,6 @@ st.markdown(
         }
         [data-testid="stRadio"] label > div:first-child { display: none !important; }
 
-        /* ============================================================
-           PROGRESS
-           ============================================================ */
-
         [data-testid="stProgress"] {
             display: flex;
             flex-direction: column;
@@ -1100,10 +1050,6 @@ st.markdown(
             100% { transform: translateX(100%); }
         }
 
-        /* ============================================================
-           FILE UPLOADER
-           ============================================================ */
-
         [data-testid="stFileUploaderDropzone"] {
             background: rgba(9, 12, 22, 0.55) !important;
             border: 1.5px dashed rgba(129, 140, 248, 0.28) !important;
@@ -1116,20 +1062,12 @@ st.markdown(
             background: rgba(99, 102, 241, 0.06) !important;
         }
 
-        /* ============================================================
-           DATAFRAMES
-           ============================================================ */
-
         [data-testid="stDataFrame"] {
             border-radius: 16px !important;
             overflow: hidden;
             border: 1px solid var(--line-1) !important;
             box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.55);
         }
-
-        /* ============================================================
-           ALERTS
-           ============================================================ */
 
         [data-testid="stAlert"] {
             border-radius: 12px !important;
@@ -1141,10 +1079,6 @@ st.markdown(
             color: var(--txt-1) !important;
             font-size: 13px !important;
         }
-
-        /* ============================================================
-           COMMENT CARDS
-           ============================================================ */
 
         .sd-comment {
             position: relative;
@@ -1171,10 +1105,6 @@ st.markdown(
                 #6366f1 0%, #8b5cf6 50%, #22d3ee 100%);
             box-shadow: 0 0 18px rgba(99, 102, 241, 0.55);
         }
-
-        /* ============================================================
-           SCROLLBARS
-           ============================================================ */
 
         ::-webkit-scrollbar { width: 10px; height: 10px; }
         ::-webkit-scrollbar-track { background: transparent; }
@@ -1208,10 +1138,6 @@ st.markdown(
             font-size: 12px !important;
             line-height: 1.6;
         }
-
-        /* ============================================================
-           RESPONSIVE
-           ============================================================ */
 
         @media (max-width: 1100px) {
             .sd-hero-inner { grid-template-columns: 1fr 1fr; }
@@ -1689,26 +1615,40 @@ render_html(
 
 
 # =========================================================
-# HERO — with integrated live charts
+# HERO — placeholder-based live repaint
 # =========================================================
 
-hero_data = None
-if "analysis" in st.session_state:
-    _hero = st.session_state["analysis"]
-    _hero_classified = _hero[_hero["sentiment"].ne("Not analyzed")]
-    if not _hero_classified.empty:
-        _sent = _hero_classified["sentiment"].value_counts().to_dict()
-        _topics = (
-            _hero_classified.explode("topics")["topics"]
-            .dropna().value_counts().head(5).to_dict()
-        )
-        hero_data = {
-            "sentiment_counts": _sent,
-            "topic_counts": _topics,
-            "total": len(_hero_classified),
-        }
+def compute_hero_data(analysis_df):
+    """Return hero chart data from an analyzed DataFrame, or None if empty."""
+    if analysis_df is None or analysis_df.empty:
+        return None
+    classified_df = analysis_df[analysis_df["sentiment"].ne("Not analyzed")]
+    if classified_df.empty:
+        return None
+    sent_counts = classified_df["sentiment"].value_counts().to_dict()
+    topic_counts = (
+        classified_df.explode("topics")["topics"]
+        .dropna().value_counts().head(5).to_dict()
+    )
+    return {
+        "sentiment_counts": sent_counts,
+        "topic_counts": topic_counts,
+        "total": len(classified_df),
+    }
 
-render_html(build_hero_html(hero_data))
+
+# Reserve a stable slot for the hero. It will be repainted after
+# classification completes, without a page reload.
+hero_placeholder = st.empty()
+
+_initial_hero = None
+if "analysis" in st.session_state:
+    _initial_hero = compute_hero_data(st.session_state["analysis"])
+
+hero_placeholder.markdown(
+    compact_html(build_hero_html(_initial_hero)),
+    unsafe_allow_html=True,
+)
 
 
 # =========================================================
@@ -1870,6 +1810,16 @@ with st.expander(
         st.session_state.pop("brief", None)
         st.session_state.pop("draft", None)
 
+        # ★ Repaint the hero in place with fresh classification data.
+        _fresh_hero = compute_hero_data(result)
+        hero_placeholder.markdown(
+            compact_html(build_hero_html(_fresh_hero)),
+            unsafe_allow_html=True,
+        )
+
+        # Force a full rerun so KPIs, filters, and tabs pick up new analysis.
+        st.rerun()
+
 
 # =========================================================
 # Analysis state
@@ -2003,13 +1953,12 @@ overview_tab, themes_tab, evidence_tab, brief_tab, response_tab = st.tabs(
 
 
 # ------------------------- Overview -------------------------
-# NOTE: Sentiment donut + Topics bar have been REMOVED here —
-# they now live permanently inside the hero at the top of the page.
+# Sentiment donut + Topics bar live permanently inside the hero at the top.
 
 with overview_tab:
     st.markdown("#### Feedback volume over time")
     st.caption(
-        "Sentiment distribution and top topics are now displayed live "
+        "Sentiment distribution and top topics are displayed live "
         "in the hero at the top of the page."
     )
 
