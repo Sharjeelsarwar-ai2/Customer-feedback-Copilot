@@ -319,9 +319,20 @@ st.markdown(
             --mono: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
         }
 
-        header[data-testid="stHeader"] { display: none !important; }
-        [data-testid="stToolbar"] { display: none !important; }
+        header[data-testid="stHeader"] {
+            background: transparent !important;
+            height: auto !important;
+        }
+        [data-testid="stToolbar"] { visibility: hidden !important; }
         [data-testid="stDecoration"] { display: none !important; }
+        [data-testid="collapsedControl"] {
+            display: flex !important;
+            visibility: visible !important;
+            color: var(--txt-1) !important;
+        }
+        [data-testid="collapsedControl"] svg {
+            fill: var(--txt-1) !important;
+        }
         #MainMenu { visibility: hidden; }
         footer { visibility: hidden; }
 
