@@ -319,23 +319,105 @@ st.markdown(
             --mono: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
         }
 
+        /* ============================================================
+           HEADER — transparent (not hidden) so sidebar toggle works
+           ============================================================ */
+
         header[data-testid="stHeader"] {
             background: transparent !important;
-        }
-        [data-testid="stToolbar"] { visibility: hidden !important; }
-        [data-testid="stDecoration"] { display: none !important; }
-        [data-testid="collapsedControl"] {
-            display: flex !important;
-            visibility: visible !important;
-            opacity: 1 !important;
+            background-color: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
             z-index: 999999 !important;
-            color: var(--txt-1) !important;
         }
-        [data-testid="collapsedControl"] svg {
-            fill: var(--txt-1) !important;
-        }
+
+        [data-testid="stToolbar"] { display: none !important; }
+        [data-testid="stDecoration"] { display: none !important; }
+        [data-testid="stStatusWidget"] { display: none !important; }
         #MainMenu { visibility: hidden; }
         footer { visibility: hidden; }
+
+        /* ============================================================
+           SIDEBAR TOGGLE — floating glassmorphic buttons
+           ============================================================ */
+
+        [data-testid="stSidebarCollapsedControl"],
+        [data-testid="collapsedControl"] {
+            visibility: visible !important;
+            display: flex !important;
+            z-index: 9999999 !important;
+        }
+
+        [data-testid="stSidebarCollapsedControl"] button,
+        [data-testid="collapsedControl"] button {
+            background:
+                linear-gradient(135deg,
+                    rgba(99, 102, 241, 0.28) 0%,
+                    rgba(139, 92, 246, 0.20) 100%) !important;
+            border: 1px solid rgba(129, 140, 248, 0.42) !important;
+            border-radius: 12px !important;
+            color: #f6f8fc !important;
+            backdrop-filter: blur(20px) saturate(160%) !important;
+            -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+            box-shadow:
+                0 8px 24px -8px rgba(0, 0, 0, 0.7),
+                0 0 0 1px rgba(99, 102, 241, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+            padding: 8px !important;
+        }
+
+        [data-testid="stSidebarCollapsedControl"] button:hover,
+        [data-testid="collapsedControl"] button:hover {
+            background:
+                linear-gradient(135deg,
+                    rgba(99, 102, 241, 0.45) 0%,
+                    rgba(139, 92, 246, 0.32) 100%) !important;
+            border-color: rgba(165, 180, 252, 0.6) !important;
+            transform: translateY(-1px) scale(1.04);
+            box-shadow:
+                0 14px 30px -10px rgba(99, 102, 241, 0.85),
+                0 0 0 1px rgba(165, 180, 252, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.18) !important;
+        }
+
+        [data-testid="stSidebarCollapsedControl"] button svg,
+        [data-testid="collapsedControl"] button svg,
+        [data-testid="stSidebarCollapseButton"] button svg {
+            color: #f6f8fc !important;
+            fill: #f6f8fc !important;
+            width: 18px !important;
+            height: 18px !important;
+        }
+
+        [data-testid="stSidebarCollapseButton"] {
+            visibility: visible !important;
+            display: flex !important;
+        }
+
+        [data-testid="stSidebarCollapseButton"] button {
+            background: rgba(20, 25, 42, 0.72) !important;
+            border: 1px solid var(--line-1) !important;
+            border-radius: 10px !important;
+            color: #cdd5e8 !important;
+            transition: all 0.25s var(--ease-out) !important;
+        }
+
+        [data-testid="stSidebarCollapseButton"] button:hover {
+            background: rgba(99, 102, 241, 0.18) !important;
+            border-color: rgba(129, 140, 248, 0.45) !important;
+            color: #f6f8fc !important;
+        }
+
+        [data-testid="stSidebar"] {
+            z-index: 999998 !important;
+        }
+
+        /* ============================================================
+           BASE
+           ============================================================ */
 
         html, body, [class*="css"] {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -409,6 +491,10 @@ st.markdown(
             50%      { opacity: 0.5; }
         }
 
+        /* ============================================================
+           LIVE STATUS BAR
+           ============================================================ */
+
         .sd-live-bar {
             display: flex;
             align-items: center;
@@ -465,6 +551,10 @@ st.markdown(
             50%      { opacity: 0.35; transform: scale(0.7); }
         }
         .sd-live-spacer { margin-left: auto; }
+
+        /* ============================================================
+           HERO
+           ============================================================ */
 
         .sd-hero {
             position: relative;
@@ -677,6 +767,10 @@ st.markdown(
             border-top: 1px solid rgba(255, 255, 255, 0.035);
         }
 
+        /* ============================================================
+           SIDEBAR
+           ============================================================ */
+
         [data-testid="stSidebar"] {
             background: linear-gradient(180deg,
                 rgba(6, 8, 16, 0.98) 0%,
@@ -715,6 +809,10 @@ st.markdown(
             line-height: 1.7;
         }
 
+        /* ============================================================
+           EXPANDERS
+           ============================================================ */
+
         [data-testid="stExpander"] {
             background:
                 linear-gradient(180deg,
@@ -748,6 +846,10 @@ st.markdown(
             background: rgba(99, 102, 241, 0.05);
         }
 
+        /* ============================================================
+           CARDS
+           ============================================================ */
+
         [data-testid="stVerticalBlockBorderWrapper"] {
             background:
                 linear-gradient(180deg,
@@ -763,6 +865,10 @@ st.markdown(
         [data-testid="stVerticalBlockBorderWrapper"]:hover {
             border-color: rgba(129, 140, 248, 0.24);
         }
+
+        /* ============================================================
+           METRICS
+           ============================================================ */
 
         [data-testid="stMetric"] {
             position: relative;
@@ -829,6 +935,10 @@ st.markdown(
             text-shadow: 0 0 30px rgba(129, 140, 248, 0.25);
         }
 
+        /* ============================================================
+           TABS
+           ============================================================ */
+
         .stTabs [data-baseweb="tab-list"] {
             display: inline-flex;
             gap: 4px;
@@ -871,6 +981,10 @@ st.markdown(
             display: none !important;
             background: transparent !important;
         }
+
+        /* ============================================================
+           BUTTONS
+           ============================================================ */
 
         .stButton > button,
         .stDownloadButton > button {
@@ -926,6 +1040,10 @@ st.markdown(
             cursor: not-allowed;
             transform: none !important;
         }
+
+        /* ============================================================
+           INPUTS
+           ============================================================ */
 
         .stTextInput input,
         .stTextArea textarea,
@@ -1016,6 +1134,10 @@ st.markdown(
         }
         [data-testid="stRadio"] label > div:first-child { display: none !important; }
 
+        /* ============================================================
+           PROGRESS
+           ============================================================ */
+
         [data-testid="stProgress"] {
             display: flex;
             flex-direction: column;
@@ -1062,6 +1184,10 @@ st.markdown(
             100% { transform: translateX(100%); }
         }
 
+        /* ============================================================
+           FILE UPLOADER
+           ============================================================ */
+
         [data-testid="stFileUploaderDropzone"] {
             background: rgba(9, 12, 22, 0.55) !important;
             border: 1.5px dashed rgba(129, 140, 248, 0.28) !important;
@@ -1074,12 +1200,20 @@ st.markdown(
             background: rgba(99, 102, 241, 0.06) !important;
         }
 
+        /* ============================================================
+           DATAFRAMES
+           ============================================================ */
+
         [data-testid="stDataFrame"] {
             border-radius: 16px !important;
             overflow: hidden;
             border: 1px solid var(--line-1) !important;
             box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.55);
         }
+
+        /* ============================================================
+           ALERTS
+           ============================================================ */
 
         [data-testid="stAlert"] {
             border-radius: 12px !important;
@@ -1091,6 +1225,10 @@ st.markdown(
             color: var(--txt-1) !important;
             font-size: 13px !important;
         }
+
+        /* ============================================================
+           COMMENT CARDS
+           ============================================================ */
 
         .sd-comment {
             position: relative;
@@ -1117,6 +1255,10 @@ st.markdown(
                 #6366f1 0%, #8b5cf6 50%, #22d3ee 100%);
             box-shadow: 0 0 18px rgba(99, 102, 241, 0.55);
         }
+
+        /* ============================================================
+           SCROLLBARS
+           ============================================================ */
 
         ::-webkit-scrollbar { width: 10px; height: 10px; }
         ::-webkit-scrollbar-track { background: transparent; }
@@ -1150,6 +1292,10 @@ st.markdown(
             font-size: 12px !important;
             line-height: 1.6;
         }
+
+        /* ============================================================
+           RESPONSIVE
+           ============================================================ */
 
         @media (max-width: 1100px) {
             .sd-hero-inner { grid-template-columns: 1fr 1fr; }
@@ -1649,8 +1795,6 @@ def compute_hero_data(analysis_df):
     }
 
 
-# Reserve a stable slot for the hero. It will be repainted after
-# classification completes, without a page reload.
 hero_placeholder = st.empty()
 
 _initial_hero = None
@@ -1822,14 +1966,14 @@ with st.expander(
         st.session_state.pop("brief", None)
         st.session_state.pop("draft", None)
 
-        # ★ Repaint the hero in place with fresh classification data.
+        # Repaint the hero in place with fresh classification data.
         _fresh_hero = compute_hero_data(result)
         hero_placeholder.markdown(
             compact_html(build_hero_html(_fresh_hero)),
             unsafe_allow_html=True,
         )
 
-        # Force a full rerun so KPIs, filters, and tabs pick up new analysis.
+        # Full rerun so KPIs, filters, and tabs pick up new analysis.
         st.rerun()
 
 
@@ -1965,7 +2109,6 @@ overview_tab, themes_tab, evidence_tab, brief_tab, response_tab = st.tabs(
 
 
 # ------------------------- Overview -------------------------
-# Sentiment donut + Topics bar live permanently inside the hero at the top.
 
 with overview_tab:
     st.markdown("#### Feedback volume over time")
