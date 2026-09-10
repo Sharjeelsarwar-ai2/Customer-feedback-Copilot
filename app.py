@@ -320,7 +320,8 @@ st.markdown(
         }
 
         /* ============================================================
-           HEADER — transparent (not hidden) so sidebar toggle works
+           HEADER — transparent, kept fully in DOM so the sidebar
+           toggle stays alive. Hide only specific toolbar buttons.
            ============================================================ */
 
         header[data-testid="stHeader"] {
@@ -330,70 +331,30 @@ st.markdown(
             box-shadow: none !important;
             backdrop-filter: none !important;
             -webkit-backdrop-filter: none !important;
-            z-index: 999999 !important;
         }
 
-        [data-testid="stToolbar"] { display: none !important; }
-        [data-testid="stDecoration"] { display: none !important; }
-        [data-testid="stStatusWidget"] { display: none !important; }
+        /* Hide decorative chrome — but NOT stToolbar itself, because
+           the sidebar toggle lives inside it in current Streamlit. */
+        [data-testid="stAppDeployButton"],
+        [data-testid="stMainMenu"],
+        [data-testid="stStatusWidget"],
+        [data-testid="stToolbarActions"],
+        [data-testid="stDecoration"] {
+            display: none !important;
+        }
+
         #MainMenu { visibility: hidden; }
         footer { visibility: hidden; }
 
         /* ============================================================
-           SIDEBAR TOGGLE — floating glassmorphic buttons
+           SIDEBAR TOGGLE — visible and styled in both states
            ============================================================ */
 
-        [data-testid="stSidebarCollapsedControl"],
-        [data-testid="collapsedControl"] {
-            visibility: visible !important;
-            display: flex !important;
-            z-index: 9999999 !important;
-        }
-
-        [data-testid="stSidebarCollapsedControl"] button,
-        [data-testid="collapsedControl"] button {
-            background:
-                linear-gradient(135deg,
-                    rgba(99, 102, 241, 0.28) 0%,
-                    rgba(139, 92, 246, 0.20) 100%) !important;
-            border: 1px solid rgba(129, 140, 248, 0.42) !important;
-            border-radius: 12px !important;
-            color: #f6f8fc !important;
-            backdrop-filter: blur(20px) saturate(160%) !important;
-            -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
-            box-shadow:
-                0 8px 24px -8px rgba(0, 0, 0, 0.7),
-                0 0 0 1px rgba(99, 102, 241, 0.15),
-                inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
-            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
-            padding: 8px !important;
-        }
-
-        [data-testid="stSidebarCollapsedControl"] button:hover,
-        [data-testid="collapsedControl"] button:hover {
-            background:
-                linear-gradient(135deg,
-                    rgba(99, 102, 241, 0.45) 0%,
-                    rgba(139, 92, 246, 0.32) 100%) !important;
-            border-color: rgba(165, 180, 252, 0.6) !important;
-            transform: translateY(-1px) scale(1.04);
-            box-shadow:
-                0 14px 30px -10px rgba(99, 102, 241, 0.85),
-                0 0 0 1px rgba(165, 180, 252, 0.3),
-                inset 0 1px 0 rgba(255, 255, 255, 0.18) !important;
-        }
-
-        [data-testid="stSidebarCollapsedControl"] button svg,
-        [data-testid="collapsedControl"] button svg,
-        [data-testid="stSidebarCollapseButton"] button svg {
-            color: #f6f8fc !important;
-            fill: #f6f8fc !important;
-            width: 18px !important;
-            height: 18px !important;
-        }
-
+        /* Expanded state: the button that collapses the sidebar,
+           sitting inside the sidebar header */
         [data-testid="stSidebarCollapseButton"] {
             visibility: visible !important;
+            opacity: 1 !important;
             display: flex !important;
         }
 
@@ -411,8 +372,63 @@ st.markdown(
             color: #f6f8fc !important;
         }
 
+        /* Collapsed state: the floating button that reopens the sidebar */
+        [data-testid="stSidebarCollapsedControl"],
+        [data-testid="collapsedControl"] {
+            visibility: visible !important;
+            opacity: 1 !important;
+            display: flex !important;
+            z-index: 2147483647 !important;
+        }
+
+        [data-testid="stSidebarCollapsedControl"] button,
+        [data-testid="collapsedControl"] button {
+            background:
+                linear-gradient(135deg,
+                    rgba(99, 102, 241, 0.32) 0%,
+                    rgba(139, 92, 246, 0.22) 100%) !important;
+            border: 1px solid rgba(129, 140, 248, 0.48) !important;
+            border-radius: 12px !important;
+            color: #f6f8fc !important;
+            backdrop-filter: blur(20px) saturate(160%) !important;
+            -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+            box-shadow:
+                0 8px 24px -8px rgba(0, 0, 0, 0.75),
+                0 0 0 1px rgba(99, 102, 241, 0.20),
+                inset 0 1px 0 rgba(255, 255, 255, 0.14) !important;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+            padding: 8px !important;
+        }
+
+        [data-testid="stSidebarCollapsedControl"] button:hover,
+        [data-testid="collapsedControl"] button:hover {
+            background:
+                linear-gradient(135deg,
+                    rgba(99, 102, 241, 0.50) 0%,
+                    rgba(139, 92, 246, 0.36) 100%) !important;
+            border-color: rgba(165, 180, 252, 0.68) !important;
+            transform: translateY(-1px) scale(1.05);
+            box-shadow:
+                0 14px 30px -10px rgba(99, 102, 241, 0.9),
+                0 0 0 1px rgba(165, 180, 252, 0.35),
+                inset 0 1px 0 rgba(255, 255, 255, 0.20) !important;
+        }
+
+        /* Force the arrow icon inside either toggle to be bright */
+        [data-testid="stSidebarCollapsedControl"] button svg,
+        [data-testid="collapsedControl"] button svg,
+        [data-testid="stSidebarCollapseButton"] button svg {
+            color: #f6f8fc !important;
+            fill: #f6f8fc !important;
+            stroke: #f6f8fc !important;
+            width: 18px !important;
+            height: 18px !important;
+            opacity: 1 !important;
+        }
+
+        /* Sidebar sits above everything else it might overlap */
         [data-testid="stSidebar"] {
-            z-index: 999998 !important;
+            z-index: 1000 !important;
         }
 
         /* ============================================================
