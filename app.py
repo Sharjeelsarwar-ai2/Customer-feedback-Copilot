@@ -622,7 +622,7 @@ with st.sidebar:
 
     st.markdown("##### AI connection")
     if api_key:
-        st.success("Groq key configured", icon="✓")
+       st.success("Groq key configured", icon="✅")
     else:
         st.warning("Add GROQ_API_KEY to app secrets.")
 
