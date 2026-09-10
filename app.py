@@ -68,33 +68,59 @@ Topic = Literal[
 
 
 # =========================================================
+# HTML rendering helper — prevents markdown code-block takeover
+# =========================================================
+
+def compact_html(s: str) -> str:
+    """
+    Strip leading whitespace from every non-empty line.
+    Markdown treats any line indented 4+ spaces as a code block,
+    which is why raw HTML was rendering as text. This makes every
+    line start at column 0, so the HTML passes through untouched.
+    """
+    lines = []
+    for line in s.split("\n"):
+        lines.append(line.lstrip() if line.strip() else "")
+    return "\n".join(lines)
+
+
+def render_html(markup: str) -> None:
+    """Render raw HTML safely through Streamlit."""
+    st.markdown(compact_html(markup), unsafe_allow_html=True)
+
+
+# =========================================================
 # SVG CHART GENERATORS — for the hero
 # =========================================================
 
 def build_donut_svg(sentiment_counts: dict, total: int) -> str:
-    """Build an animated SVG donut chart for sentiment distribution."""
+    """Animated SVG donut chart for sentiment distribution."""
     if not sentiment_counts or total == 0:
-        return '''
-        <svg viewBox="0 0 200 200" width="100%" height="100%"
-             style="max-width:180px;max-height:180px;margin:auto;display:block;">
-            <circle cx="100" cy="100" r="58" fill="none"
-                    stroke="rgba(148,163,184,0.08)" stroke-width="16"
-                    stroke-dasharray="3 9"/>
-            <circle cx="100" cy="100" r="58" fill="none"
-                    stroke="rgba(99,102,241,0.5)" stroke-width="16"
-                    transform="rotate(-90 100 100)" stroke-linecap="round">
-                <animate attributeName="stroke-dasharray"
-                         values="0 364;120 244;0 364"
-                         dur="3.2s" repeatCount="indefinite"/>
-            </circle>
-            <text x="100" y="103" text-anchor="middle"
-                  fill="#5a6479" font-family="JetBrains Mono, monospace"
-                  font-size="9" letter-spacing="2">AWAITING</text>
-            <text x="100" y="117" text-anchor="middle"
-                  fill="#475063" font-family="JetBrains Mono, monospace"
-                  font-size="8" letter-spacing="1.5">DATA STREAM</text>
-        </svg>
-        '''
+        return (
+            '<svg viewBox="0 0 200 200" width="100%" height="100%" '
+            'style="max-width:190px;max-height:190px;margin:auto;display:block;">'
+            '<defs>'
+            '<linearGradient id="idleSpin" x1="0" y1="0" x2="1" y2="1">'
+            '<stop offset="0%" stop-color="#6366f1"/>'
+            '<stop offset="100%" stop-color="#22d3ee"/>'
+            '</linearGradient>'
+            '</defs>'
+            '<circle cx="100" cy="100" r="58" fill="none" '
+            'stroke="rgba(148,163,184,0.08)" stroke-width="14"/>'
+            '<circle cx="100" cy="100" r="58" fill="none" '
+            'stroke="url(#idleSpin)" stroke-width="14" stroke-linecap="round" '
+            'stroke-dasharray="60 304" transform="rotate(-90 100 100)">'
+            '<animateTransform attributeName="transform" type="rotate" '
+            'from="-90 100 100" to="270 100 100" dur="4s" repeatCount="indefinite"/>'
+            '</circle>'
+            '<text x="100" y="103" text-anchor="middle" fill="#5a6479" '
+            'font-family="JetBrains Mono, monospace" font-size="9" '
+            'letter-spacing="2">AWAITING</text>'
+            '<text x="100" y="117" text-anchor="middle" fill="#475063" '
+            'font-family="JetBrains Mono, monospace" font-size="8" '
+            'letter-spacing="1.5">DATA STREAM</text>'
+            '</svg>'
+        )
 
     r = 58
     cx, cy = 100, 100
@@ -102,7 +128,7 @@ def build_donut_svg(sentiment_counts: dict, total: int) -> str:
 
     order = ["Positive", "Mixed", "Neutral", "Negative"]
     segments = []
-    offset = 0
+    offset = 0.0
     for sentiment in order:
         count = sentiment_counts.get(sentiment, 0)
         if count == 0:
@@ -112,7 +138,7 @@ def build_donut_svg(sentiment_counts: dict, total: int) -> str:
         color = SENTIMENT_HEX[sentiment]
         segments.append(
             f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="none" '
-            f'stroke="{color}" stroke-width="16" '
+            f'stroke="{color}" stroke-width="14" '
             f'stroke-dasharray="{dash:.2f} {circ - dash:.2f}" '
             f'stroke-dashoffset="{-offset:.2f}" '
             f'transform="rotate(-90 {cx} {cy})"/>'
@@ -123,58 +149,55 @@ def build_donut_svg(sentiment_counts: dict, total: int) -> str:
     dominant_pct = round(dominant[1] / total * 100)
     dominant_color = SENTIMENT_HEX.get(dominant[0], "#94a3b8")
 
-    # Inner shadow ring for depth
-    return f'''
-    <svg viewBox="0 0 200 200" width="100%" height="100%"
-         style="max-width:180px;max-height:180px;margin:auto;display:block;">
-        <defs>
-            <filter id="segGlow" x="-50%" y="-50%" width="200%" height="200%">
-                <feGaussianBlur stdDeviation="3.5" result="b"/>
-                <feMerge>
-                    <feMergeNode in="b"/>
-                    <feMergeNode in="SourceGraphic"/>
-                </feMerge>
-            </filter>
-            <radialGradient id="donutInner" cx="50%" cy="50%" r="50%">
-                <stop offset="55%" stop-color="rgba(99,102,241,0.08)"/>
-                <stop offset="100%" stop-color="transparent"/>
-            </radialGradient>
-        </defs>
-        <circle cx="{cx}" cy="{cy}" r="{r}" fill="none"
-                stroke="rgba(255,255,255,0.035)" stroke-width="16"/>
-        <g filter="url(#segGlow)">{''.join(segments)}</g>
-        <circle cx="{cx}" cy="{cy}" r="42" fill="url(#donutInner)"/>
-        <text x="{cx}" y="{cy - 2}" text-anchor="middle"
-              fill="{dominant_color}"
-              font-family="JetBrains Mono, monospace"
-              font-size="30" font-weight="600"
-              letter-spacing="-1.5">{dominant_pct}%</text>
-        <text x="{cx}" y="{cy + 18}" text-anchor="middle"
-              fill="#6f788d" font-family="JetBrains Mono, monospace"
-              font-size="9" letter-spacing="1.8">{dominant[0].upper()}</text>
-    </svg>
-    '''
+    return (
+        '<svg viewBox="0 0 200 200" width="100%" height="100%" '
+        'style="max-width:190px;max-height:190px;margin:auto;display:block;">'
+        '<defs>'
+        '<filter id="segGlow" x="-50%" y="-50%" width="200%" height="200%">'
+        '<feGaussianBlur stdDeviation="3.5" result="b"/>'
+        '<feMerge>'
+        '<feMergeNode in="b"/>'
+        '<feMergeNode in="SourceGraphic"/>'
+        '</feMerge>'
+        '</filter>'
+        '<radialGradient id="donutInner" cx="50%" cy="50%" r="50%">'
+        '<stop offset="55%" stop-color="rgba(99,102,241,0.08)"/>'
+        '<stop offset="100%" stop-color="transparent"/>'
+        '</radialGradient>'
+        '</defs>'
+        f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="none" '
+        'stroke="rgba(255,255,255,0.035)" stroke-width="14"/>'
+        f'<g filter="url(#segGlow)">{"".join(segments)}</g>'
+        f'<circle cx="{cx}" cy="{cy}" r="42" fill="url(#donutInner)"/>'
+        f'<text x="{cx}" y="{cy - 2}" text-anchor="middle" fill="{dominant_color}" '
+        'font-family="JetBrains Mono, monospace" font-size="30" font-weight="600" '
+        f'letter-spacing="-1.5">{dominant_pct}%</text>'
+        f'<text x="{cx}" y="{cy + 18}" text-anchor="middle" fill="#6f788d" '
+        'font-family="JetBrains Mono, monospace" font-size="9" '
+        f'letter-spacing="1.8">{dominant[0].upper()}</text>'
+        '</svg>'
+    )
 
 
 def build_topics_svg(topic_counts: dict) -> str:
-    """Build an animated SVG horizontal bar chart for top topics."""
+    """Animated SVG horizontal bar chart for top topics."""
     if not topic_counts:
         bars = []
         for i in range(5):
             w = 200 - i * 20
             bars.append(
                 f'<rect x="105" y="{i * 27 + 8}" width="{w}" height="11" rx="5" '
-                f'fill="rgba(148,163,184,0.07)"/>'
+                'fill="rgba(148,163,184,0.07)"/>'
             )
-        return f'''
-        <svg viewBox="0 0 380 160" width="100%" height="100%"
-             preserveAspectRatio="xMidYMid meet">
-            {''.join(bars)}
-            <text x="190" y="150" text-anchor="middle"
-                  fill="#475063" font-family="JetBrains Mono, monospace"
-                  font-size="9" letter-spacing="2">AWAITING DATA STREAM</text>
-        </svg>
-        '''
+        return (
+            '<svg viewBox="0 0 380 160" width="100%" height="100%" '
+            'preserveAspectRatio="xMidYMid meet">'
+            f'{"".join(bars)}'
+            '<text x="190" y="150" text-anchor="middle" fill="#475063" '
+            'font-family="JetBrains Mono, monospace" font-size="9" '
+            'letter-spacing="2">AWAITING DATA STREAM</text>'
+            '</svg>'
+        )
 
     topics = list(topic_counts.items())[:5]
     max_count = max(c for _, c in topics) if topics else 1
@@ -191,53 +214,46 @@ def build_topics_svg(topic_counts: dict) -> str:
         y = i * row_height + top_pad
         bar_width = (count / max_count) * bar_max_width if max_count else 0
         text_y = y + bar_height - 1
-
         topic_label = topic if len(topic) <= 13 else topic[:12] + "…"
+        rows.append(
+            f'<text x="{label_width - 8}" y="{text_y}" '
+            'text-anchor="end" fill="#b3bcd0" '
+            'font-family="JetBrains Mono, monospace" '
+            f'font-size="10" letter-spacing="-0.2">{topic_label}</text>'
+            f'<rect x="{label_width}" y="{y}" width="{bar_max_width}" '
+            f'height="{bar_height}" rx="6" fill="rgba(255,255,255,0.028)"/>'
+            f'<rect x="{label_width}" y="{y}" width="{bar_width:.1f}" '
+            f'height="{bar_height}" rx="6" fill="url(#topBarGrad)">'
+            f'<animate attributeName="width" from="0" to="{bar_width:.1f}" '
+            'dur="1.2s" fill="freeze" calcMode="spline" '
+            'keySplines="0.16 1 0.3 1"/>'
+            '</rect>'
+            f'<text x="{label_width + bar_width + 8:.1f}" y="{text_y}" '
+            'fill="#f6f8fc" font-family="JetBrains Mono, monospace" '
+            f'font-size="10" font-weight="600">{count}</text>'
+        )
 
-        rows.append(f'''
-            <text x="{label_width - 8}" y="{text_y}"
-                  text-anchor="end" fill="#b3bcd0"
-                  font-family="JetBrains Mono, monospace"
-                  font-size="10" letter-spacing="-0.2">{topic_label}</text>
-            <rect x="{label_width}" y="{y}" width="{bar_max_width}"
-                  height="{bar_height}" rx="6"
-                  fill="rgba(255,255,255,0.028)"/>
-            <rect x="{label_width}" y="{y}" width="{bar_width:.1f}"
-                  height="{bar_height}" rx="6" fill="url(#topBarGrad)">
-                <animate attributeName="width"
-                         from="0" to="{bar_width:.1f}"
-                         dur="1.2s" fill="freeze"
-                         calcMode="spline"
-                         keySplines="0.16 1 0.3 1"/>
-            </rect>
-            <text x="{label_width + bar_width + 8:.1f}" y="{text_y}"
-                  fill="#f6f8fc" font-family="JetBrains Mono, monospace"
-                  font-size="10" font-weight="600">{count}</text>
-        ''')
-
-    return f'''
-    <svg viewBox="0 0 {label_width + bar_max_width + 40} {chart_height}"
-         width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
-        <defs>
-            <linearGradient id="topBarGrad" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stop-color="#6366f1"/>
-                <stop offset="55%" stop-color="#8b5cf6"/>
-                <stop offset="100%" stop-color="#22d3ee"/>
-            </linearGradient>
-        </defs>
-        {''.join(rows)}
-    </svg>
-    '''
+    return (
+        f'<svg viewBox="0 0 {label_width + bar_max_width + 40} {chart_height}" '
+        'width="100%" height="100%" preserveAspectRatio="xMidYMid meet">'
+        '<defs>'
+        '<linearGradient id="topBarGrad" x1="0" y1="0" x2="1" y2="0">'
+        '<stop offset="0%" stop-color="#6366f1"/>'
+        '<stop offset="55%" stop-color="#8b5cf6"/>'
+        '<stop offset="100%" stop-color="#22d3ee"/>'
+        '</linearGradient>'
+        '</defs>'
+        f'{"".join(rows)}'
+        '</svg>'
+    )
 
 
 def build_hero_html(hero_data) -> str:
-    """Build the hero HTML with embedded SVG charts."""
+    """Full hero markup with embedded SVG charts. No indentation."""
     if hero_data:
-        donut_svg = build_donut_svg(
-            hero_data["sentiment_counts"], hero_data["total"]
-        )
+        donut_svg = build_donut_svg(hero_data["sentiment_counts"], hero_data["total"])
         topics_svg = build_topics_svg(hero_data["topic_counts"])
-        donut_footer = f"{hero_data['total']:,} CLASSIFIED"
+        donut_footer = f'{hero_data["total"]:,} CLASSIFIED'
         topics_footer = "LIVE · TOP 5"
     else:
         donut_svg = build_donut_svg({}, 0)
@@ -245,49 +261,47 @@ def build_hero_html(hero_data) -> str:
         donut_footer = "AWAITING ANALYSIS"
         topics_footer = "AWAITING ANALYSIS"
 
-    return f'''
-    <div class="sd-hero">
-        <div class="sd-hero-inner">
+    return (
+        '<div class="sd-hero">'
+        '<div class="sd-hero-inner">'
 
-            <div class="sd-hero-text">
-                <div class="sd-eyebrow">
-                    <span class="sd-live-dot"></span>
-                    VOICE OF CUSTOMER · LIVE INTELLIGENCE
-                </div>
-                <h1>Turn feedback into <span class="sd-grad">your next move.</span></h1>
-                <p>
-                    Understand customer sentiment, surface recurring friction,
-                    and turn real comments into evidence-backed product
-                    decisions — in real time.
-                </p>
-                <div class="sd-pills">
-                    <span class="sd-pill">⚡ GROQ POWERED</span>
-                    <span class="sd-pill">◈ EVIDENCE FIRST</span>
-                    <span class="sd-pill">◉ HUMAN REVIEW</span>
-                </div>
-            </div>
+        '<div class="sd-hero-text">'
+        '<div class="sd-eyebrow">'
+        '<span class="sd-live-dot"></span>'
+        'VOICE OF CUSTOMER · LIVE INTELLIGENCE'
+        '</div>'
+        '<h1>Turn feedback into <span class="sd-grad">your next move.</span></h1>'
+        '<p>Understand customer sentiment, surface recurring friction, '
+        'and turn real comments into evidence-backed product decisions — '
+        'in real time.</p>'
+        '<div class="sd-pills">'
+        '<span class="sd-pill">⚡ GROQ POWERED</span>'
+        '<span class="sd-pill">◈ EVIDENCE FIRST</span>'
+        '<span class="sd-pill">◉ HUMAN REVIEW</span>'
+        '</div>'
+        '</div>'
 
-            <div class="sd-hero-chart">
-                <div class="sd-chart-label">
-                    <span class="sd-chart-dot" style="background:#6366f1;color:#6366f1;"></span>
-                    SENTIMENT
-                </div>
-                <div class="sd-chart-svg">{donut_svg}</div>
-                <div class="sd-chart-footer">{donut_footer}</div>
-            </div>
+        '<div class="sd-hero-chart">'
+        '<div class="sd-chart-label">'
+        '<span class="sd-chart-dot" style="background:#6366f1;color:#6366f1;"></span>'
+        'SENTIMENT'
+        '</div>'
+        f'<div class="sd-chart-svg">{donut_svg}</div>'
+        f'<div class="sd-chart-footer">{donut_footer}</div>'
+        '</div>'
 
-            <div class="sd-hero-chart">
-                <div class="sd-chart-label">
-                    <span class="sd-chart-dot" style="background:#22d3ee;color:#22d3ee;"></span>
-                    TOP TOPICS
-                </div>
-                <div class="sd-chart-svg">{topics_svg}</div>
-                <div class="sd-chart-footer">{topics_footer}</div>
-            </div>
+        '<div class="sd-hero-chart">'
+        '<div class="sd-chart-label">'
+        '<span class="sd-chart-dot" style="background:#22d3ee;color:#22d3ee;"></span>'
+        'TOP TOPICS'
+        '</div>'
+        f'<div class="sd-chart-svg">{topics_svg}</div>'
+        f'<div class="sd-chart-footer">{topics_footer}</div>'
+        '</div>'
 
-        </div>
-    </div>
-    '''
+        '</div>'
+        '</div>'
+    )
 
 
 # =========================================================
@@ -455,7 +469,7 @@ st.markdown(
         .sd-live-spacer { margin-left: auto; }
 
         /* ============================================================
-           HERO — Now with integrated live charts
+           HERO — with integrated live charts
            ============================================================ */
 
         .sd-hero {
@@ -498,7 +512,6 @@ st.markdown(
         @keyframes sd-border-rotate {
             to { --angle: 360deg; }
         }
-
         .sd-hero::after {
             content: "";
             position: absolute;
@@ -511,7 +524,6 @@ st.markdown(
             pointer-events: none;
             z-index: 1;
         }
-
         .sd-hero-inner {
             position: relative;
             z-index: 2;
@@ -520,14 +532,12 @@ st.markdown(
             gap: 26px;
             align-items: stretch;
         }
-
         .sd-hero-text {
             display: flex;
             flex-direction: column;
             justify-content: center;
             padding: 4px 0;
         }
-
         .sd-eyebrow {
             display: inline-flex;
             align-items: center;
@@ -551,7 +561,6 @@ st.markdown(
             box-shadow: 0 0 10px #22d3ee, 0 0 20px rgba(34, 211, 238, 0.6);
             animation: sd-live-pulse 1.8s ease-in-out infinite;
         }
-
         .sd-hero h1 {
             color: var(--txt-0);
             font-size: clamp(28px, 3.2vw, 42px);
@@ -573,7 +582,6 @@ st.markdown(
             0%, 100% { background-position: 0% 50%; }
             50%      { background-position: 100% 50%; }
         }
-
         .sd-hero p {
             color: var(--txt-1);
             font-size: 14px;
@@ -581,7 +589,6 @@ st.markdown(
             max-width: 420px;
             margin: 0 0 22px 0;
         }
-
         .sd-pills { display: flex; flex-wrap: wrap; gap: 7px; }
         .sd-pill {
             display: inline-flex;
@@ -606,7 +613,6 @@ st.markdown(
             box-shadow: 0 10px 24px -12px rgba(99, 102, 241, 0.9);
         }
 
-        /* Hero chart cards */
         .sd-hero-chart {
             display: flex;
             flex-direction: column;
@@ -641,7 +647,6 @@ st.markdown(
                 transparent);
             opacity: 0.8;
         }
-
         .sd-chart-label {
             display: flex;
             align-items: center;
@@ -659,7 +664,6 @@ st.markdown(
             box-shadow: 0 0 8px currentColor;
             animation: sd-live-pulse 1.8s ease-in-out infinite;
         }
-
         .sd-chart-svg {
             flex: 1;
             display: flex;
@@ -668,7 +672,6 @@ st.markdown(
             min-height: 150px;
             padding: 4px 0;
         }
-
         .sd-chart-footer {
             font-family: var(--mono);
             font-size: 9px;
@@ -1211,12 +1214,8 @@ st.markdown(
            ============================================================ */
 
         @media (max-width: 1100px) {
-            .sd-hero-inner {
-                grid-template-columns: 1fr 1fr;
-            }
-            .sd-hero-text {
-                grid-column: 1 / -1;
-            }
+            .sd-hero-inner { grid-template-columns: 1fr 1fr; }
+            .sd-hero-text { grid-column: 1 / -1; }
         }
         @media (max-width: 900px) {
             .sd-hero { padding: 32px 24px; border-radius: 22px; }
@@ -1364,10 +1363,7 @@ def safe_csv(frame: pd.DataFrame) -> bytes:
 
 
 def render_comment(text: str):
-    st.markdown(
-        f'<div class="sd-comment">{html.escape(str(text))}</div>',
-        unsafe_allow_html=True,
-    )
+    render_html(f'<div class="sd-comment">{html.escape(str(text))}</div>')
 
 
 def style_chart(fig):
@@ -1665,33 +1661,30 @@ with st.sidebar:
 # Live status bar
 # =========================================================
 
-st.markdown(
-    """
-    <div class="sd-live-bar">
-        <div class="sd-live-item">
-            <span class="sd-live-dot" style="background:#10b981;color:#10b981;"></span>
-            <span class="sd-live-key">SYSTEM</span>
-            <span class="sd-live-val">OPERATIONAL</span>
-        </div>
-        <div class="sd-live-item">
-            <span class="sd-live-key">LATENCY</span>
-            <span class="sd-live-val">24<span style="color:var(--txt-3);font-size:9px;margin-left:2px;">ms</span></span>
-        </div>
-        <div class="sd-live-item">
-            <span class="sd-live-key">STREAM</span>
-            <span class="sd-live-val" style="color:#22d3ee;">ACTIVE</span>
-        </div>
-        <div class="sd-live-item">
-            <span class="sd-live-key">MODEL</span>
-            <span class="sd-live-val" style="color:#a5b4fc;">GROQ · LLM</span>
-        </div>
-        <div class="sd-live-item sd-live-spacer">
-            <span class="sd-live-key">SESSION</span>
-            <span class="sd-live-val">ENCRYPTED</span>
-        </div>
-    </div>
-    """,
-    unsafe_allow_html=True,
+render_html(
+    '<div class="sd-live-bar">'
+    '<div class="sd-live-item">'
+    '<span class="sd-live-dot" style="background:#10b981;color:#10b981;"></span>'
+    '<span class="sd-live-key">SYSTEM</span>'
+    '<span class="sd-live-val">OPERATIONAL</span>'
+    '</div>'
+    '<div class="sd-live-item">'
+    '<span class="sd-live-key">LATENCY</span>'
+    '<span class="sd-live-val">24<span style="color:var(--txt-3);font-size:9px;margin-left:2px;">ms</span></span>'
+    '</div>'
+    '<div class="sd-live-item">'
+    '<span class="sd-live-key">STREAM</span>'
+    '<span class="sd-live-val" style="color:#22d3ee;">ACTIVE</span>'
+    '</div>'
+    '<div class="sd-live-item">'
+    '<span class="sd-live-key">MODEL</span>'
+    '<span class="sd-live-val" style="color:#a5b4fc;">GROQ · LLM</span>'
+    '</div>'
+    '<div class="sd-live-item sd-live-spacer">'
+    '<span class="sd-live-key">SESSION</span>'
+    '<span class="sd-live-val">ENCRYPTED</span>'
+    '</div>'
+    '</div>'
 )
 
 
@@ -1715,7 +1708,7 @@ if "analysis" in st.session_state:
             "total": len(_hero_classified),
         }
 
-st.markdown(build_hero_html(hero_data), unsafe_allow_html=True)
+render_html(build_hero_html(hero_data))
 
 
 # =========================================================
@@ -2009,77 +2002,37 @@ overview_tab, themes_tab, evidence_tab, brief_tab, response_tab = st.tabs(
 )
 
 
-with overview_tab:
-    left, right = st.columns(2)
+# ------------------------- Overview -------------------------
+# NOTE: Sentiment donut + Topics bar have been REMOVED here —
+# they now live permanently inside the hero at the top of the page.
 
-    with left, st.container(border=True):
-        st.markdown("#### Sentiment distribution")
-        sentiment_counts = (
-            filtered["sentiment"].value_counts()
-            .rename_axis("Sentiment").reset_index(name="Count")
+with overview_tab:
+    st.markdown("#### Feedback volume over time")
+    st.caption(
+        "Sentiment distribution and top topics are now displayed live "
+        "in the hero at the top of the page."
+    )
+
+    dated = classified.dropna(subset=["date"]).copy()
+    if dated.empty:
+        st.info("Map a valid date column to see the timeline.")
+    else:
+        dated["day"] = dated["date"].dt.floor("D")
+        timeline = dated.groupby(["day", "sentiment"]).size().reset_index(name="Comments")
+        fig = px.bar(
+            timeline, x="day", y="Comments", color="sentiment",
+            color_discrete_map=SENTIMENT_COLORS,
+            labels={"day": "Date", "sentiment": "Sentiment"},
         )
-        fig = px.pie(
-            sentiment_counts, names="Sentiment", values="Count", hole=0.72,
-            color="Sentiment", color_discrete_map=SENTIMENT_COLORS,
-        )
-        fig.update_traces(
-            textinfo="percent", textposition="outside",
-            marker=dict(line=dict(color="rgba(3,4,7,0.95)", width=2)),
-            textfont=dict(family="JetBrains Mono, monospace", size=11),
-        )
+        fig.update_traces(marker=dict(line=dict(width=0), cornerradius=6))
         st.plotly_chart(
             style_chart(fig), use_container_width=True,
             config={"displayModeBar": False},
         )
+        st.caption("Rows with missing dates are excluded from this chart.")
 
-    with right, st.container(border=True):
-        st.markdown("#### Topics customers mention")
-        exploded = classified.explode("topics")
-        topic_counts = (
-            exploded["topics"].dropna().value_counts()
-            .rename_axis("Topic").reset_index(name="Mentions")
-            .sort_values("Mentions")
-        )
-        if topic_counts.empty:
-            st.info("No classified topics available.")
-        else:
-            fig = px.bar(
-                topic_counts, x="Mentions", y="Topic",
-                orientation="h", text="Mentions",
-                color_discrete_sequence=["#818cf8"],
-            )
-            fig.update_layout(xaxis_title=None, yaxis_title=None)
-            fig.update_traces(
-                marker=dict(line=dict(width=0), cornerradius=8),
-                textposition="outside",
-                textfont=dict(color="#cbd5e1", size=11, family="JetBrains Mono, monospace"),
-            )
-            st.plotly_chart(
-                style_chart(fig), use_container_width=True,
-                config={"displayModeBar": False},
-            )
-        st.caption("A comment can mention up to three topics.")
 
-    with st.container(border=True):
-        st.markdown("#### Feedback over time")
-        dated = classified.dropna(subset=["date"]).copy()
-        if dated.empty:
-            st.info("Map a valid date column to see the timeline.")
-        else:
-            dated["day"] = dated["date"].dt.floor("D")
-            timeline = dated.groupby(["day", "sentiment"]).size().reset_index(name="Comments")
-            fig = px.bar(
-                timeline, x="day", y="Comments", color="sentiment",
-                color_discrete_map=SENTIMENT_COLORS,
-                labels={"day": "Date", "sentiment": "Sentiment"},
-            )
-            fig.update_traces(marker=dict(line=dict(width=0), cornerradius=6))
-            st.plotly_chart(
-                style_chart(fig), use_container_width=True,
-                config={"displayModeBar": False},
-            )
-            st.caption("Rows with missing dates are excluded from this chart.")
-
+# ------------------------- Themes -------------------------
 
 with themes_tab:
     st.markdown("#### Where friction is accumulating")
@@ -2115,6 +2068,8 @@ with themes_tab:
         "signaldesk_themes.csv", "text/csv",
     )
 
+
+# ------------------------- Evidence -------------------------
 
 with evidence_tab:
     st.markdown("#### Inspect the source behind every signal")
@@ -2159,6 +2114,8 @@ with evidence_tab:
         "text/csv", use_container_width=True,
     )
 
+
+# ------------------------- Executive brief -------------------------
 
 with brief_tab:
     st.markdown("#### Your evidence-backed product brief")
@@ -2228,6 +2185,8 @@ with brief_tab:
     else:
         st.info("Generate a brief for the current filtered view.")
 
+
+# ------------------------- Response studio -------------------------
 
 with response_tab:
     st.markdown("#### Thoughtful replies, ready for review")
