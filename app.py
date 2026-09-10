@@ -81,6 +81,11 @@ st.markdown(
            GLOBAL / APP SHELL
            ============================ */
 
+        /* Hide the default Streamlit header that masks the hero section */
+        header[data-testid="stHeader"] {
+            display: none !important;
+        }
+
         html, body, [class*="css"] {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             -webkit-font-smoothing: antialiased;
@@ -115,7 +120,7 @@ st.markdown(
 
         .block-container {
             max-width: 1450px;
-            padding-top: 2rem;
+            padding-top: 3rem !important; /* Added space since header is hidden */
             padding-bottom: 4rem;
             position: relative;
             z-index: 1;
@@ -352,6 +357,42 @@ st.markdown(
         }
 
         /* ============================
+           EXPANDERS (PANELS)
+           ============================ */
+
+        [data-testid="stExpander"] {
+            background: linear-gradient(150deg,
+                rgba(17, 24, 39, 0.75),
+                rgba(9, 13, 24, 0.6));
+            border: 1px solid rgba(148, 163, 184, 0.15) !important;
+            border-radius: 18px !important;
+            box-shadow: 0 16px 40px -22px rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(24px) saturate(160%);
+            -webkit-backdrop-filter: blur(24px) saturate(160%);
+            margin-bottom: 24px;
+            overflow: hidden;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        [data-testid="stExpander"]:hover {
+            border-color: rgba(129, 140, 248, 0.3);
+            box-shadow: 0 20px 50px -22px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(99, 102, 241, 0.12);
+        }
+
+        [data-testid="stExpander"] summary {
+            font-family: 'Space Grotesk', sans-serif !important;
+            color: #a5b4fc !important;
+            font-weight: 600 !important;
+            padding: 18px 24px !important;
+            font-size: 15px;
+        }
+
+        [data-testid="stExpander"] summary:hover {
+            color: #e2e8f0 !important;
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        /* ============================
            CONTAINERS / CARDS
            ============================ */
 
@@ -547,13 +588,13 @@ st.markdown(
         }
 
         /* ============================
-           INPUTS
+           INPUTS & FORM ELEMENTS
            ============================ */
 
         .stTextInput input,
         .stTextArea textarea,
         .stNumberInput input,
-        [data-baseweb="select"] > div,
+        div[data-baseweb="select"] > div,
         [data-baseweb="input"] {
             background: rgba(11, 16, 28, 0.75) !important;
             border: 1px solid rgba(148, 163, 184, 0.16) !important;
@@ -565,11 +606,34 @@ st.markdown(
 
         .stTextInput input:focus,
         .stTextArea textarea:focus,
-        .stNumberInput input:focus {
+        .stNumberInput input:focus,
+        div[data-baseweb="select"] > div:focus-within {
             border-color: rgba(129, 140, 248, 0.55) !important;
             box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18) !important;
         }
 
+        /* Radio Buttons styling */
+        [data-testid="stRadio"] > div {
+            gap: 12px;
+        }
+        
+        [data-testid="stRadio"] label {
+            background: rgba(30, 41, 59, 0.4);
+            padding: 10px 18px;
+            border-radius: 12px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            transition: all 0.2s ease;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+
+        [data-testid="stRadio"] label:hover {
+            border-color: rgba(129, 140, 248, 0.4);
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        /* Tags in multiselect */
         [data-baseweb="tag"] {
             background: linear-gradient(135deg,
                 rgba(99, 102, 241, 0.35),
@@ -593,45 +657,15 @@ st.markdown(
         }
 
         /* ============================
-           EXPANDERS
-           ============================ */
-
-        [data-testid="stExpander"] {
-            background: linear-gradient(150deg,
-                rgba(17, 24, 39, 0.55),
-                rgba(9, 13, 24, 0.4));
-            border: 1px solid rgba(148, 163, 184, 0.12);
-            border-radius: 16px !important;
-            overflow: hidden;
-            backdrop-filter: blur(18px);
-            -webkit-backdrop-filter: blur(18px);
-            box-shadow: 0 12px 32px -20px rgba(0, 0, 0, 0.8);
-            transition: border-color 0.25s ease;
-        }
-
-        [data-testid="stExpander"]:hover {
-            border-color: rgba(129, 140, 248, 0.3);
-        }
-
-        [data-testid="stExpander"] summary {
-            font-weight: 600 !important;
-            color: #e2e8f0 !important;
-            padding: 14px 18px !important;
-        }
-
-        [data-testid="stExpander"] summary:hover {
-            color: #a5b4fc !important;
-        }
-
-        /* ============================
            DATAFRAMES
            ============================ */
 
         [data-testid="stDataFrame"] {
-            border-radius: 14px !important;
+            border-radius: 16px !important;
             overflow: hidden;
-            border: 1px solid rgba(148, 163, 184, 0.12) !important;
-            box-shadow: 0 12px 30px -20px rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(148, 163, 184, 0.15) !important;
+            box-shadow: 0 16px 40px -22px rgba(0, 0, 0, 0.9);
+            background: rgba(15, 23, 42, 0.4);
         }
 
         /* ============================
@@ -664,7 +698,7 @@ st.markdown(
         }
 
         /* ============================
-           FILE UPLOADER / RADIO
+           FILE UPLOADER
            ============================ */
 
         [data-testid="stFileUploaderDropzone"] {
